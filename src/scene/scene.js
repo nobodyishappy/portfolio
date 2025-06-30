@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Pathfinding, PathfindingHelper } from 'three-pathfinding';
 import { DRACOLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
+import { base } from '$app/paths';
 
 const scene = new THREE.Scene();
 
@@ -129,7 +130,7 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
     loader.setDRACOLoader( dracoLoader );
 
-    loader.load('/models/Test.glb', (gltf) => {
+    loader.load(`${base}/models/Test.glb`, (gltf) => {
         scene.add(gltf.scene);
         let navmesh = gltf.scene.children[0];
         //@ts-ignore
