@@ -4,26 +4,12 @@ import { DRACOLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { base } from '$app/paths';
 
 const scene = new THREE.Scene();
-
 const raycaster = new THREE.Raycaster();
+/** @type {THREE.PerspectiveCamera} */
+let camera;
+/** @type {THREE.WebGLRenderer} */
+let renderer;
 
-const boxGeometry = new THREE.BoxGeometry(10,10,0.1);
-const boxMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-const cube = new THREE.Mesh(boxGeometry, boxMaterial);
-// scene.add(cube);
-
-const sphereGeometry = new THREE.SphereGeometry(0.1);
-const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff });
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-scene.add(sphere)
-
-const circleGeometry = new THREE.CircleGeometry(10);
-const circleMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-const circle = new THREE.Mesh(circleGeometry, circleMaterial);
-// scene.add(circle);
-
-const ambientLight = new THREE.AmbientLight( 0xffffff );
-scene.add(ambientLight);
 
 // Pathfinding 
 const clock = new THREE.Clock();
@@ -33,8 +19,11 @@ scene.add(pathfindinghelper)
 const ZONE = 'level1';
 /** @type {THREE.Vector3[]} */
 let path;
+
+//Movement Values
+const startPos = new THREE.Vector3(0,0,0);
 /** @type {THREE.Vector3} */
-let currentPos;
+let currentPos = startPos;
 /** @type {THREE.Vector3} */
 let endPos;
 let currentIndex = 0;
@@ -43,40 +32,48 @@ let isMoving = false;
 const direction = new THREE.Vector3();
 const temp = new THREE.Vector3();
 
+let playerOffset = new THREE.Vector3(0,0.8,0);
+let dirLightOffset = new THREE.Vector3(100,100,100);
+let cameraOffset = new THREE.Vector3(0,15,15);
 
-/** @type {THREE.PerspectiveCamera} */
-let camera;
-let cameraOffset = new THREE.Vector3(0,3,1.5);
-/** @type {THREE.WebGLRenderer} */
-let renderer;
+/** @type {THREE.Mesh<THREE.CapsuleGeometry>} */
+let capsule;
+
+let ambientLight;
+/** @type {THREE.DirectionalLight} */
+let dirLight;
+
 
 export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
     raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
     const intersects = raycaster.intersectObjects(scene.children);
 
-    let b = intersects[0].point;
+    for(let i = 0; i < intersects.length; i++) {
+        if(intersects[i].object.name == 'navmesh') {
+            let b = intersects[i].point;
 
-    const groupID = pathfinding.getGroup(ZONE, sphere.position);
-    path = pathfinding.findPath(sphere.position, b, ZONE, groupID);
+            const groupID = pathfinding.getGroup(ZONE, currentPos);
+            const closest = pathfinding.getClosestNode(currentPos,ZONE,groupID);
+            path = pathfinding.findPath(closest.centroid, b, ZONE, groupID);
 
-    console.log(path)
-
-    if (path) {
-        isMoving = true;
-        currentPos = sphere.position;
-        endPos = path[0]
-        // pathfindinghelper.reset();
-        // pathfindinghelper.setPlayerPosition(sphere.position);
-        // pathfindinghelper.setTargetPosition(b);
-        // pathfindinghelper.setPath(path)
-    }
+            if (path) {
+                isMoving = true;
+                endPos = path[0];
+                currentIndex = 0;
+                // pathfindinghelper.reset();
+                // pathfindinghelper.setPlayerPosition(currentPos);
+                // pathfindinghelper.setTargetPosition(b);
+                // pathfindinghelper.setPath(path);
+            } else {
+                isMoving = false;
+            }
+        }
+    }    
 }
 
 const animate = () => {
     requestAnimationFrame(animate);
-    // cube.rotation.x += 0.01;
-    // cube.rotation.y += 0.01;
     renderer.render(scene, camera);
     const delta = clock.getDelta();
     
@@ -102,9 +99,9 @@ const animate = () => {
             currentPos.add(temp);
         }
 
-        sphere.position.copy(currentPos);
+        capsule.position.copy(currentPos).add(playerOffset);
         camera.position.copy(currentPos).add(cameraOffset);
-        camera.lookAt(sphere.position);
+        camera.lookAt(currentPos);
     }
 }
 
@@ -115,10 +112,35 @@ export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} *
 }
 
 export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
+    const fiveTone = new THREE.TextureLoader().load(`${base}/gradientMaps/fiveTone.jpg`);
+    fiveTone.minFilter = THREE.NearestFilter;
+    fiveTone.magFilter = THREE.NearestFilter;
+
+    const capsuleGeometry = new THREE.CapsuleGeometry( 0.5, 0.8, 10, 20);
+    const capsuleMaterial = new THREE.MeshToonMaterial({ color: 0x00ffff });
+    capsuleMaterial.gradientMap = fiveTone
+    capsule = new THREE.Mesh(capsuleGeometry, capsuleMaterial);
+    scene.add(capsule)
+    capsule.position.set(startPos.x, startPos.y, startPos.z).add(playerOffset);
+    capsule.castShadow = true;
+
     renderer = new THREE.WebGLRenderer({ antialias: true, canvas: el});
-    camera = new THREE.PerspectiveCamera(75, el.width / el.height, 0.2, 1000);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    camera = new THREE.PerspectiveCamera(45, el.width / el.height, 0.2, 1000);
     camera.position.add(cameraOffset);
-    camera.lookAt(sphere.position);
+    camera.lookAt(currentPos);
+
+    ambientLight = new THREE.AmbientLight( 0xffffff, 0.5 );
+    scene.add(ambientLight);
+
+    dirLight = new THREE.DirectionalLight( 0xffffff, 1.0 );
+    dirLight.position.copy(dirLightOffset);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+    dirLight.target = capsule;
+    scene.add(dirLight);
 
     resizeScene(el.width, el.height);
     animate();
@@ -131,8 +153,22 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     loader.setDRACOLoader( dracoLoader );
 
     loader.load(`${base}/models/Test.glb`, (gltf) => {
-        scene.add(gltf.scene);
-        let navmesh = gltf.scene.children[0];
+        const model = gltf.scene;
+        scene.add(model);
+        let navmesh;
+        
+        model.traverse((child) => {
+            // @ts-ignore
+            if(child.isMesh) {
+                child.receiveShadow = true;
+                if (child.name == "navmesh"){
+                    navmesh = child;
+                    // @ts-ignore
+                    navmesh.visible = false;
+                }
+            }
+        })
+
         //@ts-ignore
         pathfinding.setZoneData(ZONE, Pathfinding.createZone(navmesh.geometry))
     })
