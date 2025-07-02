@@ -38,6 +38,10 @@ let cameraOffset = new THREE.Vector3(0,15,15);
 
 /** @type {THREE.Mesh<THREE.CapsuleGeometry>} */
 let capsule;
+/**
+ * @type {THREE.Object3D<THREE.Object3DEventMap>}
+ */
+let indicator;
 
 let ambientLight;
 /** @type {THREE.DirectionalLight} */
@@ -61,6 +65,9 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
                 isMoving = true;
                 endPos = path[0];
                 currentIndex = 0;
+
+                indicator.position.copy(b);
+                indicator.visible = true;
                 // pathfindinghelper.reset();
                 // pathfindinghelper.setPlayerPosition(currentPos);
                 // pathfindinghelper.setTargetPosition(b);
@@ -92,6 +99,7 @@ const animate = () => {
             } else {
                 isMoving = false;
                 currentIndex = 0;
+                indicator.visible = false;
             }
         } else {
             direction.normalize();
@@ -171,5 +179,12 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
 
         //@ts-ignore
         pathfinding.setZoneData(ZONE, Pathfinding.createZone(navmesh.geometry))
+    })
+
+    loader.load(`${base}/models/Indicator.glb`, (gltf) => {
+        const model = gltf.scene.children[0];
+        scene.add(model);
+        indicator = model;
+        indicator.visible = false;
     })
 }
