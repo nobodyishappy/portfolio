@@ -47,6 +47,14 @@ let ambientLight;
 /** @type {THREE.DirectionalLight} */
 let dirLight;
 
+// Variables for obelisk animations
+/** @type {THREE.AnimationMixer[]} */
+let obeliskMixers = [];
+/** @type {THREE.AnimationAction[]} */
+let obeliskActions = [];
+let obeliskInteracted = [false, false, false, false, false, false];
+let obeliskLoaded = false;
+
 
 export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
     raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
@@ -54,6 +62,16 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
     const intersects = raycaster.intersectObjects(scene.children);
 
     for(let i = 0; i < intersects.length; i++) {
+        if (intersects[i].object.name.includes("Obelisk_Model_")) {
+            // @ts-ignore
+            const num = parseInt(intersects[i].object.name.at(-1), 10) - 1;
+            if (!obeliskInteracted[num]) {
+                obeliskActions[num].timeScale = 1;
+                obeliskInteracted[num] = true;
+                return;
+            }
+        }
+
         if(intersects[i].object.name == 'navmesh') {
             let b = intersects[i].point;
 
@@ -83,6 +101,12 @@ const animate = () => {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
     const delta = clock.getDelta();
+
+    if (obeliskLoaded) {
+        for (let i = 0; i < obeliskMixers.length; i++) {
+            obeliskMixers[i].update( delta );
+        }
+    }
     
     if(isMoving) {
         const distanceThisFrame = speed * delta;
@@ -151,7 +175,6 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     scene.add(dirLight);
 
     resizeScene(el.width, el.height);
-    animate();
 
     // Import model
     const loader = new GLTFLoader();
@@ -182,9 +205,28 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     })
 
     loader.load(`${base}/models/Indicator.glb`, (gltf) => {
-        const model = gltf.scene.children[0];
+        const model = gltf.scene;
         scene.add(model);
         indicator = model;
         indicator.visible = false;
     })
+
+    loader.load(`${base}/models/obelisk.glb`, (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+
+        for (let i = 0; i < gltf.animations.length; i++) {
+            obeliskMixers[i] = new THREE.AnimationMixer( model );
+            obeliskActions[i] = obeliskMixers[i].clipAction( gltf.animations[i] );
+
+            obeliskActions[i].setLoop(THREE.LoopOnce, 1);
+            obeliskActions[i].clampWhenFinished = true;
+            obeliskActions[i].timeScale = 0;
+            obeliskActions[i].play();
+        }
+
+        obeliskLoaded = true;
+    })
+
+    animate();
 }
