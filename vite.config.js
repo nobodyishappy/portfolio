@@ -4,6 +4,6 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	base: '/portfolio/',
+	base: process.env.BASE_PATH || '/',
 	plugins: [tailwindcss(), sveltekit(), devtoolsJson()]
 });
