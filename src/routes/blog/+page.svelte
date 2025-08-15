@@ -4,7 +4,7 @@
 </script>
 
 {#each data.summaries as { slug, title, coverImage }}
-    <a href="/blog/{slug}">
+    <a href="{base}/blog/{slug}">
         <img src="{base}/NM4259/{coverImage}" alt="Cover">
         <p>{title}</p>
     </a>

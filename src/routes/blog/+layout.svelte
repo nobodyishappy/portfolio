@@ -1,9 +1,10 @@
 <script>
+	import { base } from '$app/paths';
 	let { children } = $props();
 </script>
 
 <nav>
-	<a href="/blog">Homepage</a>
+	<a href="{base}/blog">Homepage</a>
 </nav>
 
 <div class="layout">
