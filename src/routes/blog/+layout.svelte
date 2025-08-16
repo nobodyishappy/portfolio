@@ -28,9 +28,9 @@
 	.layout {
 		display: grid;
 		justify-items: center;
+		
 		main {
-			max-width: 800px;
-			margin: 0px 20px;
+			width: 100%;
 		}
 	}
 </style>

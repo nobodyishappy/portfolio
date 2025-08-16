@@ -2,7 +2,7 @@ export const posts = [
 	{
 		slug: 'nm4259_self_intro',
 		title: 'NM4259 Self Introduction',
-        coverImage: 'SnowedIn.png',
+        coverImage: 'SnowedIn',
 		content:
 			`<h2>Short Introduction</h2>
             <p>I am a Year 4 student from the School of Computing. 
