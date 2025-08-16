@@ -9,6 +9,5 @@
 <style lang="scss">
 	.article {
 		max-width: 800px;
-		margin: 0px 20px;
 	}
 </style>
