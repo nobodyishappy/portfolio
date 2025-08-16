@@ -18,7 +18,7 @@
 		background-color: white;
 		padding: 10px 20px;
 		filter: drop-shadow(0px 5px 5px lightgray);
-		margin-bottom: 10px;
+		margin-bottom: 20px;
 		a {
 			font-size: large;
 			font-weight: bold;

@@ -15,5 +15,5 @@ export const posts = [
                 During my internship at Straits Times, this realization became more prominent and obvious.
                 I hope that this module would allow me to gain more insights on the different aspects of design and gain valuable feedback on my current designs.
                 </p>`
-	}
-];``
+	},
+];
