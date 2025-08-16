@@ -26,11 +26,9 @@
 	}
 
 	.layout {
-		display: grid;
-		justify-items: center;
-		
 		main {
 			width: 100%;
+			justify-items: center;
 		}
 	}
 </style>
