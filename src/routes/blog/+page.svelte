@@ -74,17 +74,6 @@
             font-weight: 700;
         }
 
-        @media (width > 400px) {
-            .recent-title {
-                font-size: 32px;
-            }
-        }
-
-        @media (width > 800px) {
-            .recent-title {
-                font-size: 40px;
-            }
-        }
         .swiper {
             padding: 10px 0px 40px;
             .swiper-slide {
@@ -108,20 +97,35 @@
                     color: white;
                     background-image: linear-gradient(transparent, gray);
                 }
+            }
+        }
 
-                @media (width > 400px) {
+        @media (width > 400px) {
+            .recent-title {
+                font-size: 32px;
+            }
+            .swiper {
+                .swiper-slide {
+                    width:50%;
                     .title-text {
                         font-size: 16px;
                     }
                 }
+            }
+        }
 
-                @media (width > 800px) {
+        @media (width > 1200px) {
+            .recent-title {
+                font-size: 40px;
+            }
+            .swiper {
+                .swiper-slide {
+                    width:50%;
+                    max-width: 1000px;
                     .title-text {
                         font-size: 30px;
                     }
                 }
-
-                
             }
         }
     }
