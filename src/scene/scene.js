@@ -48,7 +48,6 @@ let ambientLight;
 let dirLight;
 
 // Variables for obelisk animations
-let obeliskParent;
 /** @type {THREE.AnimationMixer[]} */
 let obeliskMixers = [];
 /** @type {THREE.AnimationAction[]} */
@@ -242,8 +241,6 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     loader.load(`${base}/models/Obelisk.glb`, (gltf) => {
         const model = gltf.scene;
         scene.add(model);
-
-        obeliskParent = model.children;
         
         model.traverse((child) => {
             // @ts-ignore
