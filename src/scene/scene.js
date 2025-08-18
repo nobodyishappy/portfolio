@@ -34,7 +34,7 @@ const temp = new THREE.Vector3();
 
 let playerOffset = new THREE.Vector3(0,0.8,0);
 let dirLightOffset = new THREE.Vector3(100,100,100);
-let cameraOffset = new THREE.Vector3(0,15,15);
+let cameraOffset = new THREE.Vector3(0,10,10);
 
 /** @type {THREE.Mesh<THREE.CapsuleGeometry>} */
 let capsule;
@@ -48,12 +48,14 @@ let ambientLight;
 let dirLight;
 
 // Variables for obelisk animations
+let obeliskParent;
 /** @type {THREE.AnimationMixer[]} */
 let obeliskMixers = [];
 /** @type {THREE.AnimationAction[]} */
 let obeliskActions = [];
 let obeliskInteracted = [false, false, false, false, false, false];
 let obeliskLoaded = false;
+let glowSpeed = 0.1;
 
 
 export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
@@ -62,9 +64,24 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
     const intersects = raycaster.intersectObjects(scene.children);
 
     for(let i = 0; i < intersects.length; i++) {
-        if (intersects[i].object.name.includes("Obelisk_Model_")) {
+        if (intersects[i].object.name.includes("Obelisk_")) {
+            let obelisk = intersects[i].object;
+            while (!obelisk.name.includes("Obelisk_Arm_") && obelisk != null) {
+                // @ts-ignore
+                obelisk = obelisk.parent;
+            }
+
             // @ts-ignore
-            const num = parseInt(intersects[i].object.name.at(-1), 10) - 1;
+            const num = parseInt(obelisk.name.at(-1), 10) - 1;
+
+            obelisk.traverse((child) => {
+                // @ts-ignore
+                if(child.name.includes("Obelisk_Glow_")) {
+                    // @ts-ignore
+                    morphTarget(child);
+                }
+            });
+
             if (!obeliskInteracted[num]) {
                 obeliskActions[num].timeScale = 1;
                 obeliskInteracted[num] = true;
@@ -102,6 +119,8 @@ const animate = () => {
     renderer.render(scene, camera);
     const delta = clock.getDelta();
 
+    
+
     if (obeliskLoaded) {
         for (let i = 0; i < obeliskMixers.length; i++) {
             obeliskMixers[i].update( delta );
@@ -134,6 +153,15 @@ const animate = () => {
         capsule.position.copy(currentPos).add(playerOffset);
         camera.position.copy(currentPos).add(cameraOffset);
         camera.lookAt(currentPos);
+    }
+}
+
+const morphTarget = (/** @type {THREE.SkinnedMesh} */obeliskGlow) => {
+    // @ts-ignore
+    obeliskGlow.morphTargetInfluences[0] = THREE.MathUtils.lerp(obeliskGlow.morphTargetInfluences[0], 1, glowSpeed);
+
+    if (obeliskGlow.morphTargetInfluences?.[0] != 1) {
+        setTimeout(() => {morphTarget(obeliskGlow)}, 50);
     }
 }
 
@@ -183,7 +211,7 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
     loader.setDRACOLoader( dracoLoader );
 
-    loader.load(`${base}/models/Test.glb`, (gltf) => {
+    loader.load(`${base}/models/Land.glb`, (gltf) => {
         const model = gltf.scene;
         scene.add(model);
         let navmesh;
@@ -198,7 +226,7 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
                     navmesh.visible = false;
                 }
             }
-        })
+        });
 
         //@ts-ignore
         pathfinding.setZoneData(ZONE, Pathfinding.createZone(navmesh.geometry))
@@ -211,9 +239,21 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
         indicator.visible = false;
     })
 
-    loader.load(`${base}/models/obelisk.glb`, (gltf) => {
+    loader.load(`${base}/models/Obelisk.glb`, (gltf) => {
         const model = gltf.scene;
         scene.add(model);
+
+        obeliskParent = model.children;
+        
+        model.traverse((child) => {
+            // @ts-ignore
+            if(child.isMesh) {
+                child.receiveShadow = true;
+                if (child.name.includes("Obelisk_Model_") || child.name.includes("Obelisk_Glow_")) {
+                    child.frustumCulled = false;
+                }
+            }
+        });
 
         for (let i = 0; i < gltf.animations.length; i++) {
             obeliskMixers[i] = new THREE.AnimationMixer( model );
