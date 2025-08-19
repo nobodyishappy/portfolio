@@ -10,6 +10,11 @@ let camera;
 /** @type {THREE.WebGLRenderer} */
 let renderer;
 
+// Camera panning
+let isPanning = false;
+let isInteracted = false;
+let cameraTargetPos = new THREE.Vector3();
+let startingPanPos = new THREE.Vector3();
 
 // Pathfinding 
 const clock = new THREE.Clock();
@@ -61,21 +66,43 @@ let randObeliskArr = [0, 1, 2, 3, 4, 5];
 let monumentRings = [];
 /** @type {THREE.Object3D<THREE.Object3DEventMap>} */
 let monumentCenter;
+let monumentFloatDir = 1;
+
 let monumentComplete = false;
 let monumentConstructing = false;
 const glowSpeed = 0.025;
 const monumentHeight = 4;
 const monumentSpeed = 5;
 const ringRots = [[0,38,0],[0,90,30],[0,60,0],[90,0,0],[23.44,0,0],[0,0,0]]
-const monumentRot = 5;
+const monumentRotSpd = 2.5;
+const monumentFloatSpd = 0.8;
+const monumnetFloatDist = 0.5;
 const degToRad = Math.PI / 180;
 
 export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
+    if (isPanning) {
+        return;
+    }
+
+    if (isInteracted) {
+        isPanning = true;
+        startingPanPos.copy(cameraTargetPos);
+        cameraMovement(currentPos.clone(), cameraOffset.clone());
+        return;
+    }
+
     raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
     const intersects = raycaster.intersectObjects(scene.children);
-
     for(let i = 0; i < intersects.length; i++) {
+        if (intersects[i].object.name.includes("Monument_") && monumentComplete && !isMoving) {
+            cameraTargetPos.copy(currentPos);
+            startingPanPos.copy(currentPos);
+            isPanning = true;
+            cameraMovement(new THREE.Vector3(0, 4, 0), cameraOffset.clone());
+            break;
+        }
+
         if (intersects[i].object.name.includes("Obelisk_")) {
             // @ts-ignore
             const num = parseInt(intersects[i].object.name.at(-1), 10) - 1;
@@ -148,7 +175,7 @@ const animate = () => {
         obelistIntCount++;
         setTimeout(() => {
             // @ts-ignore
-            monumentCenter.material.emissiveIntensity = 3
+            monumentCenter.material.emissiveIntensity = 3;
             monumentConstructing = true;
             setTimeout(() => {
                 monumentConstructing = false;
@@ -164,23 +191,29 @@ const animate = () => {
             for (let i = 0; i < monumentRings.length; i++) {
                 let ring = monumentCenter.children[i]
                 if (ring.rotation.x < ringRots[i][0] * degToRad) {
-                    ring.rotation.x += delta * monumentRot;
+                    ring.rotation.x += delta * monumentRotSpd;
                 }
                 if (ring.rotation.y < ringRots[i][2] * degToRad) {
-                    ring.rotation.y += delta * monumentRot;
+                    ring.rotation.y += delta * monumentRotSpd;
                 }
                 if (ring.rotation.z < ringRots[i][1] * degToRad) {
-                    ring.rotation.z += delta * monumentRot;
+                    ring.rotation.z += delta * monumentRotSpd;
                 }
             }
             if (monumentCenter.rotation.z < 23.44 * degToRad) {
-                monumentCenter.rotation.z += delta * monumentRot;
+                monumentCenter.rotation.z += delta * monumentRotSpd;
             }
         }
     }
 
     if (monumentComplete) {
-        monumentCenter.rotation.y += delta * monumentRot;
+        monumentCenter.rotation.y += delta * monumentRotSpd;
+        if (monumentCenter.position.y < monumentHeight - monumnetFloatDist) {
+            monumentFloatDir = 1;
+        } else if (monumentCenter.position.y > monumentHeight + monumnetFloatDist) {
+            monumentFloatDir = -1;
+        }
+        monumentCenter.position.y += delta * monumentFloatSpd * monumentFloatDir;
     }
     
     if(isMoving) {
@@ -234,6 +267,22 @@ const shuffleArray = (/** @type {Number[]} */ array) => {
     }
 
     return array;
+}
+
+const cameraMovement = (/** @type {THREE.Vector3} */target, /** @type {THREE.Vector3} */targetOffset) => {
+    let diff = new THREE.Vector3().subVectors(target, startingPanPos);
+    cameraTargetPos.add(diff.divideScalar(50));
+    camera.position.copy(cameraTargetPos).add(targetOffset);
+    camera.lookAt(cameraTargetPos);
+
+    if (cameraTargetPos.distanceTo(target) > 0.05) {
+        setTimeout(() => {
+            cameraMovement(target, targetOffset);
+        }, 10);
+    } else {
+        isPanning = false;
+        isInteracted = cameraTargetPos.distanceTo(currentPos) > 0.05
+    }
 }
 
 export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} */ newHeight) => {
