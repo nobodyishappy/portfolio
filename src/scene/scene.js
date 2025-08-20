@@ -31,21 +31,30 @@ const startPos = new THREE.Vector3(0,0,6);
 let currentPos = startPos;
 /** @type {THREE.Vector3} */
 let endPos;
+const startRot = 90;
+/** @type {Number} */
+let currentRot = startRot;
+/** @type {Number} */
+let endRot;
+/** @type {Number} */
+let rotDir;
 let currentIndex = 0;
-let speed = 5;
+let movSpeed = 5;
+let rotSpeed = 100;
 let isMoving = false;
 const direction = new THREE.Vector3();
 const temp = new THREE.Vector3();
 
-let playerOffset = new THREE.Vector3(0,0.8,0);
+let playerOffset = new THREE.Vector3(0,0.0,0);
 let dirLightOffset = new THREE.Vector3(100,100,100);
 let cameraOffset = new THREE.Vector3(0,10,10);
 
-/** @type {THREE.Mesh} */
-let capsule;
-/**
- * @type {THREE.Object3D<THREE.Object3DEventMap>}
- */
+// Player Model
+/** @type {THREE.Object3D<THREE.Object3DEventMap>} */
+let player;
+// /** @type {THREE.Object3D<THREE.Object3DEventMap>} */
+// let capsule;
+/** @type {THREE.Object3D<THREE.Object3DEventMap>} */
 let indicator;
 
 let ambientLight;
@@ -76,7 +85,7 @@ const monumentSpeed = 5;
 const ringRots = [[0,38,0],[0,90,30],[0,60,0],[90,0,0],[23.44,0,0],[0,0,0]]
 const monumentRotSpd = 2.5;
 const monumentFloatSpd = 0.8;
-const monumnetFloatDist = 0.5;
+const monumentFloatDist = 0.5;
 const degToRad = Math.PI / 180;
 
 export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
@@ -147,6 +156,9 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
                 endPos = path[0];
                 currentIndex = 0;
 
+                direction.subVectors(endPos, currentPos);
+                endRot = currentRot + rotateAngle();
+
                 indicator.position.copy(b);
                 indicator.visible = true;
                 // pathfindinghelper.reset();
@@ -208,17 +220,28 @@ const animate = () => {
 
     if (monumentComplete) {
         monumentCenter.rotation.y += delta * monumentRotSpd;
-        if (monumentCenter.position.y < monumentHeight - monumnetFloatDist) {
+        if (monumentCenter.position.y < monumentHeight - monumentFloatDist) {
             monumentFloatDir = 1;
-        } else if (monumentCenter.position.y > monumentHeight + monumnetFloatDist) {
+        } else if (monumentCenter.position.y > monumentHeight + monumentFloatDist) {
             monumentFloatDir = -1;
         }
         monumentCenter.position.y += delta * monumentFloatSpd * monumentFloatDir;
     }
     
     if(isMoving) {
-        const distanceThisFrame = speed * delta;
+        const rotationThisFrame = rotSpeed * delta;
+        
+        if (endRot != currentRot) {
+            if (endRot * rotDir <= (currentRot + rotDir * rotationThisFrame) * rotDir) {
+                currentRot = endRot;
+            } else {
+                currentRot = currentRot + rotDir * rotationThisFrame;
+                player.rotation.y = currentRot * degToRad;
+            }
+            return;
+        }
 
+        const distanceThisFrame = movSpeed * delta;
         direction.subVectors(endPos, currentPos);
         const distanceToNext = direction.length();
 
@@ -227,7 +250,11 @@ const animate = () => {
             currentIndex++;
 
             if (currentIndex <= path.length - 1) {
+                // Move to next position
                 endPos.copy(path[currentIndex]);
+
+                direction.subVectors(endPos, currentPos);
+                endRot = currentRot + rotateAngle();
             } else {
                 isMoving = false;
                 currentIndex = 0;
@@ -239,10 +266,19 @@ const animate = () => {
             currentPos.add(temp);
         }
 
-        capsule.position.copy(currentPos).add(playerOffset);
+        player.position.copy(currentPos).add(playerOffset);
         camera.position.copy(currentPos).add(cameraOffset);
         camera.lookAt(currentPos);
     }
+}
+
+const rotateAngle = () => {
+    const startRotVector = new THREE.Vector3(-Math.cos(currentRot * degToRad), 0, Math.sin(currentRot * degToRad))
+    const normal = new THREE.Vector3(0, 1, 0);
+    const cross = new THREE.Vector3().crossVectors(startRotVector, direction);
+    rotDir = Math.sign(normal.dot(cross));
+
+    return rotDir * startRotVector.angleTo(direction) * (1 / degToRad);
 }
 
 const morphTarget = (/** @type {THREE.SkinnedMesh} */obeliskGlow, /** @type {number} */ num) => {
@@ -296,13 +332,15 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     fiveTone.minFilter = THREE.NearestFilter;
     fiveTone.magFilter = THREE.NearestFilter;
 
-    const capsuleGeometry = new THREE.CapsuleGeometry( 0.5, 0.8, 10, 20);
-    const capsuleMaterial = new THREE.MeshToonMaterial({ color: 0x00ffff });
-    capsuleMaterial.gradientMap = fiveTone;
-    capsule = new THREE.Mesh(capsuleGeometry, capsuleMaterial);
-    scene.add(capsule)
-    capsule.position.set(startPos.x, startPos.y, startPos.z).add(playerOffset);
+    // const capsuleGeometry = new THREE.CapsuleGeometry( 0.5, 0.8, 10, 20);
+    // const capsuleMaterial = new THREE.MeshToonMaterial({ color: 0x00ffff });
+    // capsuleMaterial.gradientMap = fiveTone;
+    // capsule = new THREE.Mesh(capsuleGeometry, capsuleMaterial);
+    // scene.add(capsule)
+    // capsule.position.set(startPos.x, startPos.y, startPos.z).add(playerOffset);
     // capsule.castShadow = true;
+
+    const playerMaterial = new THREE.MeshToonMaterial({ color: 0x00ffff, gradientMap: fiveTone });
 
     for (let i = 0; i < 6; i++) {
         let randColor = new THREE.Color(Math.random(), Math.random(), Math.random());
@@ -321,14 +359,13 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
     camera.lookAt(currentPos);
 
-    ambientLight = new THREE.AmbientLight( 0xffffff, 0.5 );
+    ambientLight = new THREE.AmbientLight( 0xffffff, 1.0 );
     scene.add(ambientLight);
 
     dirLight = new THREE.DirectionalLight( 0xffffff, 1.0 );
     dirLight.position.copy(dirLightOffset);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
-    dirLight.target = capsule;
     scene.add(dirLight);
 
     resizeScene(el.width, el.height);
@@ -360,6 +397,23 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
         //@ts-ignore
         pathfinding.setZoneData(ZONE, Pathfinding.createZone(navmesh.geometry))
     });
+
+    loader.load(`${base}/models/Robot.glb`, (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+        player = model;
+        //dirLight.target = player;
+        player.position.add(startPos);
+        player.rotation.y = startRot * degToRad;
+
+        model.traverse((child) => {
+            // @ts-ignore
+            if (child.isMesh) {
+                // @ts-ignore
+                child.material = playerMaterial;
+            }
+        })
+    })
 
     loader.load(`${base}/models/Indicator.glb`, (gltf) => {
         const model = gltf.scene;
