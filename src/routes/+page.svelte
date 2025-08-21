@@ -11,10 +11,10 @@
     let el;
 
     onMount(() => {
-        createScene(el)
+        createScene(el, innerWidth < 800)
 
         window.addEventListener("resize", () => {
-            resizeScene(innerWidth, innerHeight)
+            resizeScene(innerWidth, innerHeight, innerWidth < 800)
         })
 
         window.addEventListener("click", (e) => {
