@@ -8,7 +8,7 @@ let cavemanMixers = [];
 /** @type {THREE.AnimationAction[]} */
 let cavemanActions = [];
 let mammothActions = [];
-let cavemenStartPos = new THREE.Vector3(20, 0, 40);
+let cavemenStartPos = new THREE.Vector3(23, 0, 45);
 let cavemanLoaded = false;
 let isCavemanInteract = false;
 let cavemanWeaponOrd = ["NW", "SH", "Boulder", "Spear", "Club"];
@@ -16,8 +16,8 @@ let cavemanWeaponOrd = ["NW", "SH", "Boulder", "Spear", "Club"];
 let cavemanCurrAnim;
 /** @type {THREE.AnimationAction} */
 let mammothCurrAnim;
-let mammothCamMov = [new THREE.Vector3(22, 2, 40), new THREE.Vector3(-17, 13, 10)];
-let cavemanCamMov = [new THREE.Vector3(13.5, 1, 40), new THREE.Vector3(3, 5, 8)];
+let mammothCamMov = [new THREE.Vector3(25, 2, 45), new THREE.Vector3(-17, 13, 10)];
+let cavemanCamMov = [new THREE.Vector3(16, 1, 44), new THREE.Vector3(3, 5, 8)];
 
 export const getMammothCamMov = () => {
     return mammothCamMov;

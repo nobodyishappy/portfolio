@@ -12,6 +12,7 @@ let camera;
 /** @type {THREE.WebGLRenderer} */
 let renderer;
 let isMobile = false;
+let interactDisabled = true;
 const degToRad = Math.PI / 180;
 
 let playerOffset = new THREE.Vector3(0,0,0);
@@ -36,7 +37,7 @@ const ZONE = 'level1';
 let path;
 
 //Movement Values
-const startPos = new THREE.Vector3(0,0,6);
+const startPos = new THREE.Vector3(0, 0, 6);
 /** @type {THREE.Vector3} */
 let currentPos = startPos;
 /** @type {THREE.Vector3} */
@@ -68,7 +69,7 @@ let ambientLight;
 let dirLight;
 
 export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
-    if (isPanning) {
+    if (isPanning || interactDisabled) {
         return;
     }
 
@@ -112,7 +113,7 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
             if(isMobile) {
                 cameraMovement(getCavemanCamMov()[0], getCavemanCamMov()[1]);
             } else {
-                cameraMovement(new THREE.Vector3(20, 2, 40), new THREE.Vector3(0, 10, 15));
+                cameraMovement(new THREE.Vector3(23, 2, 45), new THREE.Vector3(0, 10, 15));
             }
 
             updateOBInteract(true);
@@ -233,6 +234,10 @@ const cameraMovement = (/** @type {THREE.Vector3} */target, /** @type {THREE.Vec
     }
 }
 
+export const enableInteract = () => {
+    interactDisabled = false;
+}
+
 export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} */ newHeight, /** @type {boolean} */ isMob) => {
     isMobile = isMob;
     renderer.setSize(newWidth, newHeight, false);
@@ -309,14 +314,6 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
         //dirLight.target = player;
         player.position.add(startPos);
         player.rotation.y = startRot * degToRad;
-
-        model.traverse((child) => {
-            // @ts-ignore
-            if (child.isMesh) {
-                // @ts-ignore
-                child.material = playerMaterial;
-            }
-        })
     })
 
     loader.load(`${base}/models/Indicator.glb`, (gltf) => {
