@@ -273,6 +273,7 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     camera = new THREE.PerspectiveCamera(45, el.width / el.height, 0.2, 1000);
+    camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
     camera.lookAt(currentPos);
 
     ambientLight = new THREE.AmbientLight( 0xffffff, 1.0 );
