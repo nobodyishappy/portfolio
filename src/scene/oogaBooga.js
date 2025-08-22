@@ -7,15 +7,16 @@ import { base } from '$app/paths';
 let cavemanMixers = [];
 /** @type {THREE.AnimationAction[]} */
 let cavemanActions = [];
+/** @type {THREE.AnimationAction[]} */
 let mammothActions = [];
 let cavemenStartPos = new THREE.Vector3(23, 0, 45);
 let cavemanLoaded = false;
 let isCavemanInteract = false;
-let cavemanWeaponOrd = ["NW", "SH", "Boulder", "Spear", "Club"];
-/** @type {THREE.AnimationAction} */
-let cavemanCurrAnim;
-/** @type {THREE.AnimationAction} */
-let mammothCurrAnim;
+// ["NW", "SHW", "Boulder", "Spear", "Club"]
+/** @type {THREE.Object3D<THREE.Object3DEventMap>[]} */
+let cavemanWeaponOrd = [];
+let cavemanCurrIndex = 0;
+let mammothCurrIndex = 0;
 let mammothCamMov = [new THREE.Vector3(25, 2, 45), new THREE.Vector3(-17, 13, 10)];
 let cavemanCamMov = [new THREE.Vector3(16, 1, 44), new THREE.Vector3(3, 5, 8)];
 
@@ -44,6 +45,38 @@ export const updateOBInteract = (/** @type {boolean} */ value) => {
     isCavemanInteract = value;
 }
 
+export const switchCavemanAnim = () => {
+    cavemanCurrIndex++;
+    if (cavemanCurrIndex == cavemanActions.length) {
+        cavemanCurrIndex = 0;
+    }
+}
+
+export const switchMammothAnim = () => {
+    mammothCurrIndex++;
+    if (mammothCurrIndex == mammothActions.length) {
+        mammothCurrIndex = 0;
+    }
+}
+
+export const playCavemanAnim = () => {
+    cavemanActions[cavemanCurrIndex].paused = false;
+}
+
+export const pauseCavemanAnim = () => {
+    cavemanActions[cavemanCurrIndex].reset();
+    cavemanActions[cavemanCurrIndex].paused = true;
+}
+
+export const playMammothAnim = () => {
+    mammothActions[mammothCurrIndex].paused = false;
+}
+
+export const pauseMammothAnim = () => {
+    mammothActions[mammothCurrIndex].reset();
+    mammothActions[mammothCurrIndex].paused = true;
+}
+
 export const loadOogaBooga = (/** @type {GLTFLoader} */ loader, /** @type {THREE.Scene} */ scene) => {
 
     loader.load(`${base}/models/OogaBooga.glb`, (gltf) => {
@@ -54,7 +87,17 @@ export const loadOogaBooga = (/** @type {GLTFLoader} */ loader, /** @type {THREE
 
         model.traverse((child) => {
             // @ts-ignore
-            if (child.name == "Spear" || child.name == "Axe" || child.name == "Boulder" || child.name == "Club") {
+            if (child.name == "Axe") {
+                cavemanWeaponOrd[0] = child
+                child.visible = false;
+            } else if (child.name == "Boulder"){
+                cavemanWeaponOrd[1] = child
+                child.visible = false;
+            } else if (child.name == "Spear") {
+                cavemanWeaponOrd[2] = child
+                child.visible = false;
+            } else if (child.name == "Club") {
+                cavemanWeaponOrd[3] = child
                 child.visible = false;
             }
         })
@@ -63,27 +106,33 @@ export const loadOogaBooga = (/** @type {GLTFLoader} */ loader, /** @type {THREE
             cavemanMixers[i] = new THREE.AnimationMixer( model );
             let animAction;
 
-            if (gltf.animations[i].name.includes("Caveman_Idle")) {
+            // if (gltf.animations[i].name.includes("Caveman_Idle")) {
+            //     animAction = cavemanMixers[i].clipAction( gltf.animations[i] );
+            //     animAction.setLoop(THREE.LoopRepeat, Infinity);
+            //     animAction.clampWhenFinished = true;
+            //     animAction.paused = true;
+
+            //     // @ts-ignore
+            //     if (animAction._clip.name == "Caveman_Idle_NW") {
+            //         animAction.play();
+            //         cavemanCurrAnim = animAction;
+            //     }
+
+            //     cavemanActions.push(animAction);
+            // }
+            if (gltf.animations[i].name.includes("Caveman_Attack")){
                 animAction = cavemanMixers[i].clipAction( gltf.animations[i] );
                 animAction.setLoop(THREE.LoopRepeat, Infinity);
                 animAction.clampWhenFinished = true;
                 animAction.paused = true;
 
                 // @ts-ignore
-                if (animAction._clip.name == "Caveman_Idle_NW") {
+                if (animAction._clip.name == "Caveman_Attack_NW") {
                     animAction.play();
-                    cavemanCurrAnim = animAction;
                 }
 
                 cavemanActions.push(animAction);
-            } else if (gltf.animations[i].name.includes("Caveman_Attack")){
-                animAction = cavemanMixers[i].clipAction( gltf.animations[i] );
-                animAction.setLoop(THREE.LoopOnce, 1);
-                animAction.clampWhenFinished = true;
-                animAction.paused = true;
-
-                cavemanActions.push(animAction);
-            } else if (gltf.animations[i].name.includes("Mammoth")){
+            } else if (gltf.animations[i].name.includes("Mammoth") && !gltf.animations[i].name.includes("Walking")){
                 animAction = cavemanMixers[i].clipAction( gltf.animations[i] );
                 animAction.setLoop(THREE.LoopOnce, 1);
                 animAction.clampWhenFinished = true;
@@ -92,7 +141,6 @@ export const loadOogaBooga = (/** @type {GLTFLoader} */ loader, /** @type {THREE
                 // @ts-ignore
                 if (animAction._clip.name == "MammothIdle") {
                     animAction.play();
-                    mammothCurrAnim = animAction;
                 }
 
                 mammothActions.push(animAction);
@@ -100,7 +148,6 @@ export const loadOogaBooga = (/** @type {GLTFLoader} */ loader, /** @type {THREE
                 continue;
             }
         }
-
         cavemanLoaded = true;
 
         // obeliskActions[num].reset();

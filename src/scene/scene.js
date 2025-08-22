@@ -73,6 +73,10 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
         return;
     }
 
+    raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+
+    const intersects = raycaster.intersectObjects(scene.children);
+
     if (isInteracted) {
         isPanning = true;
         startingPanPos.copy(cameraTargetPos);
@@ -87,10 +91,6 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
         
         return;
     }
-
-    raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
-
-    const intersects = raycaster.intersectObjects(scene.children);
 
     for(let i = 0; i < intersects.length; i++) {
         if (intersects[i].object.name.includes("Monument_") && getStartAreaComplete() && !isMoving) {
@@ -243,6 +243,14 @@ export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} *
     renderer.setSize(newWidth, newHeight, false);
     camera.aspect = newWidth / newHeight;
     camera.updateProjectionMatrix();
+
+    if (isMobile) {
+        cameraOffset = new THREE.Vector3(0, 15, 15);
+        camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
+    } else {
+        cameraOffset = new THREE.Vector3(0, 10, 10);
+        camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
+    }
 }
 
 export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {boolean} */ isMob) => {
@@ -265,7 +273,6 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     camera = new THREE.PerspectiveCamera(45, el.width / el.height, 0.2, 1000);
-    camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
     camera.lookAt(currentPos);
 
     ambientLight = new THREE.AmbientLight( 0xffffff, 1.0 );
