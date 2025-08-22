@@ -46,21 +46,36 @@ export const updateOBInteract = (/** @type {boolean} */ value) => {
 }
 
 export const switchCavemanAnim = () => {
+    let prevAction = cavemanCurrIndex;
     cavemanCurrIndex++;
     if (cavemanCurrIndex == cavemanActions.length) {
         cavemanCurrIndex = 0;
     }
+    if (cavemanCurrIndex != 0 && prevAction != 0) {
+        cavemanWeaponOrd[prevAction - 1].visible = false;
+        cavemanWeaponOrd[cavemanCurrIndex - 1].visible = true;
+    } else if (prevAction == 0){
+        cavemanWeaponOrd[cavemanCurrIndex - 1].visible = true;
+    } else {
+        cavemanWeaponOrd[prevAction - 1].visible = false;
+    }
+    cavemanActions[prevAction].setEffectiveTimeScale(0).setEffectiveWeight(0).fadeOut(0.5);
+    cavemanActions[cavemanCurrIndex].reset().setEffectiveTimeScale(1).setEffectiveWeight(1).fadeIn(0.5).play();
 }
 
 export const switchMammothAnim = () => {
+    let prevAction = mammothCurrIndex;
     mammothCurrIndex++;
     if (mammothCurrIndex == mammothActions.length) {
         mammothCurrIndex = 0;
     }
+    mammothActions[prevAction].setEffectiveTimeScale(0).setEffectiveWeight(0).fadeOut(0.5);
+    mammothActions[mammothCurrIndex].reset().setEffectiveTimeScale(1).setEffectiveWeight(1).fadeIn(0.5).play();
 }
 
 export const playCavemanAnim = () => {
     cavemanActions[cavemanCurrIndex].paused = false;
+    cavemanActions[cavemanCurrIndex].play();
 }
 
 export const pauseCavemanAnim = () => {
@@ -70,6 +85,7 @@ export const pauseCavemanAnim = () => {
 
 export const playMammothAnim = () => {
     mammothActions[mammothCurrIndex].paused = false;
+    mammothActions[mammothCurrIndex].play();
 }
 
 export const pauseMammothAnim = () => {
@@ -134,7 +150,7 @@ export const loadOogaBooga = (/** @type {GLTFLoader} */ loader, /** @type {THREE
                 cavemanActions.push(animAction);
             } else if (gltf.animations[i].name.includes("Mammoth") && !gltf.animations[i].name.includes("Walking")){
                 animAction = cavemanMixers[i].clipAction( gltf.animations[i] );
-                animAction.setLoop(THREE.LoopOnce, 1);
+                animAction.setLoop(THREE.LoopRepeat, Infinity);
                 animAction.clampWhenFinished = true;
                 animAction.paused = true;
 
