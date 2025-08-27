@@ -12,7 +12,7 @@ let mammothStartPos = new THREE.Vector3(17, 0, 43);
 let mammothStartRot = 200;
 let mammothLoaded = false;
 let mammothCurrIndex = 0;
-let mammothCamMov = [new THREE.Vector3(17, 0, 43), new THREE.Vector3(-1 , 12, -15)];
+let mammothCamMov = [new THREE.Vector3(17, 0, 43), new THREE.Vector3(-10 , 12, -15)];
 
 export const getMammothCamMov = () => {
     return mammothCamMov;
