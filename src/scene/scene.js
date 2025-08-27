@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { Pathfinding, PathfindingHelper } from 'three-pathfinding';
 import { DRACOLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { base } from '$app/paths';
-import { getOBInteract, updateOBInteract, loadOogaBooga, animateOB, getCavemanCamMov, getMammothCamMov, playCavemanAnim, playMammothAnim, pauseCavemanAnim, pauseMammothAnim, switchCavemanAnim, switchMammothAnim } from './oogaBooga';
+import { getMammothCamMov, animateMammoth, mammothInteract, loadMammoth } from './mammoth';
 import { animateSA, getStartAreaComplete, interactStartArea, loadStartingArea } from './startingArea';
+import { isDialogOpen } from '../stores/dialogStores';
+import { animateCaveman, getCavemanCamMov, loadCaveman, cavemanInteract } from './caveman';
 
 const scene = new THREE.Scene();
 const raycaster = new THREE.Raycaster();
@@ -81,33 +83,6 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
         startingPanPos.copy(cameraTargetPos);
         startCameraOffset.copy(currentCameraOffset);
 
-        if (getOBInteract()) {
-            let currentInteracted  = intersects[0].object;
-
-            while (currentInteracted != null) {
-                if (currentInteracted.name.includes("Caveman")) {
-                    switchCavemanAnim();
-                    return;
-                }
-                if (currentInteracted.name.includes("Mammoth")) {
-                    switchMammothAnim();
-                    return;
-                }
-                // @ts-ignore
-                currentInteracted = currentInteracted.parent;
-            }
-
-            if (isMobile) {
-                cameraMovement(getMammothCamMov()[0], getMammothCamMov()[1]);
-                playMammothAnim();
-                return;
-            } else {
-                pauseCavemanAnim();
-                pauseMammothAnim();
-                updateOBInteract(false);
-            }
-        }
-
         cameraMovement(currentPos.clone(), cameraOffset.clone());
         isPanning = true;
         
@@ -123,27 +98,31 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
             break;
         }
 
-        if (intersects[i].object.parent?.name.includes("Caveman")
-            || intersects[i].object.parent?.name.includes("Mammoth")
-            || intersects[i].object.name.includes("Stand") 
-            && !isMoving) {
+        if (intersects[i].object.name.includes("Caveman") && !isMoving) {
+            disableInteract();
+
             cameraTargetPos.copy(currentPos);
             startingPanPos.copy(currentPos);
             isPanning = true;
             startCameraOffset = cameraOffset.clone();
             currentCameraOffset = cameraOffset.clone();
-            if(isMobile) {
-                cameraMovement(getCavemanCamMov()[0], getCavemanCamMov()[1]);
-                playCavemanAnim();
-            } else {
-                cameraMovement(new THREE.Vector3(23, 2, 45), new THREE.Vector3(0, 10, 15));
-                playCavemanAnim();
-                playMammothAnim();
-            }
-
-            updateOBInteract(true);
+            cameraMovement(getCavemanCamMov()[0], getCavemanCamMov()[1]);
+            cavemanInteract();
             break;
         } 
+
+        if (intersects[i].object.name.includes("Mammoth") && !isMoving) {
+            disableInteract();
+
+            cameraTargetPos.copy(currentPos);
+            startingPanPos.copy(currentPos);
+            isPanning = true;
+            startCameraOffset = cameraOffset.clone();
+            currentCameraOffset = cameraOffset.clone();
+            cameraMovement(getMammothCamMov()[0], getMammothCamMov()[1]);
+            mammothInteract();
+            break;
+        }
 
         if (intersects[i].object.name.includes("Obelisk_")) {
             interactStartArea(intersects[i])
@@ -177,12 +156,21 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
     }    
 }
 
+export const panToChar = () => {
+    startingPanPos.copy(cameraTargetPos);
+    startCameraOffset.copy(currentCameraOffset);
+    isPanning = true;
+    cameraMovement(currentPos.clone(), cameraOffset.clone());
+}
+
 const animate = () => {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
     const delta = clock.getDelta();
     
-    animateOB(delta);
+    animateCaveman(delta);
+
+    animateMammoth(delta);
 
     animateSA(delta);
     
@@ -261,6 +249,10 @@ const cameraMovement = (/** @type {THREE.Vector3} */target, /** @type {THREE.Vec
 
 export const enableInteract = () => {
     interactDisabled = false;
+}
+
+export const disableInteract = () => {
+    interactDisabled = true;
 }
 
 export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} */ newHeight, /** @type {boolean} */ isMob) => {
@@ -358,7 +350,9 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
 
     loadStartingArea(loader, scene);
 
-    loadOogaBooga(loader, scene);
+    loadCaveman(loader, scene);
+
+    loadMammoth(loader, scene);
 
     animate();
 }

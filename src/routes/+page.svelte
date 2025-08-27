@@ -1,16 +1,13 @@
 <script>
     import { onMount } from "svelte";
-    import { createScene, resizeScene, interact, enableInteract } from "../scene/scene.js"
+    import { createScene, resizeScene, interact} from "../scene/scene.js"
     import DialogBox from "./dialogBox.svelte";
+	import InteractBox from "./interactOBBox.svelte";
     
     let innerWidth = $state(0)
     let innerHeight = $state(0)
 
-    let isDialogOpen = $state(true);
-
-    /**
-	 * @type {HTMLCanvasElement}
-	 */
+    /** @type {HTMLCanvasElement} */
     let el;
 
     onMount(() => {
@@ -27,27 +24,15 @@
         })
     });
 
-    let dialogTitle = [
-        "Welcome to my portfolio",
-    ]
-
-    let dialogText = [
-        "Feel free to explore around the map following the stone and dirt paths. There are a few objects on the scene that can be interacted upon. To start off, you can try tapping the broken obelisks around the starting area.",
-    ]
-
-    const closeWindow = () => {
-        isDialogOpen = false;
-        setTimeout(() => {enableInteract();}, 1)
-    }
 </script>
 
 <svelte:window bind:innerWidth bind:innerHeight/>
 
 <canvas bind:this={el} width={innerWidth} height={innerHeight}></canvas>
 
-{#if isDialogOpen}
-    <DialogBox title={dialogTitle[0]} text={dialogText[0]} onAction={closeWindow}></DialogBox>
-{/if}
+<DialogBox></DialogBox>
+
+<InteractBox></InteractBox>
 
 <style lang="scss">
     canvas{
