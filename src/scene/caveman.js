@@ -8,14 +8,14 @@ import { currInteractText, isInteractOpen } from "../stores/interactStores.js";
 let cavemanMixers = [];
 /** @type {THREE.AnimationAction[]} */
 let cavemanActions = [];
-let cavemanStartPos = new THREE.Vector3(8, 0, 35);
+let cavemanStartPos = new THREE.Vector3(8.5, 0, 37);
 let cavemanStartRot = 290;
 let cavemanLoaded = false;
 // ["NW", "SHW", "Boulder", "Spear", "Club"]
 /** @type {THREE.Object3D<THREE.Object3DEventMap>[]} */
 let cavemanWeaponOrd = [];
 let cavemanCurrIndex = 0;
-let cavemanCamMov = [new THREE.Vector3(8, 1, 35), new THREE.Vector3(0, 5, 8)];
+let cavemanCamMov = [new THREE.Vector3(8.5, 1, 37), new THREE.Vector3(0, 5, 8)];
 
 export const getCavemanCamMov = () => {
     return cavemanCamMov;

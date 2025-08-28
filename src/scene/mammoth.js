@@ -8,11 +8,11 @@ import { currInteractText, isInteractOpen } from '../stores/interactStores';
 let mammothMixers = [];
 /** @type {THREE.AnimationAction[]} */
 let mammothActions = [];
-let mammothStartPos = new THREE.Vector3(17, 0, 43);
-let mammothStartRot = 200;
+let mammothStartPos = new THREE.Vector3(18.5, 0, 44.5);
+let mammothStartRot = 10;
 let mammothLoaded = false;
 let mammothCurrIndex = 0;
-let mammothCamMov = [new THREE.Vector3(17, 0, 43), new THREE.Vector3(-10 , 12, -15)];
+let mammothCamMov = [new THREE.Vector3(18.5, 0, 44.5), new THREE.Vector3(-10 , 12, 15)];
 
 export const getMammothCamMov = () => {
     return mammothCamMov;
