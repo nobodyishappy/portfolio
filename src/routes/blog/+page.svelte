@@ -45,9 +45,9 @@
                 <div class="swiper-slide">
                     <a href="{base}/blog/{slug}">
                         {#if innerWidth.current && innerWidth.current < 800}
-                            <img src="{base}/NM4259/{coverImage}_Mobile.png" alt="Cover">
+                            <img src="{base}/NM4259/{coverImage}_Mobile.jpg" alt="Cover">
                         {:else}
-                            <img src="{base}/NM4259/{coverImage}.png" alt="Cover">
+                            <img src="{base}/NM4259/{coverImage}.jpg" alt="Cover">
                         {/if}
                         <div class="title-text">{title}</div>
                     </a>

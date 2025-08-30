@@ -7,9 +7,9 @@
 
 <div class="banner-image">
     {#if innerWidth.current && innerWidth.current < 500}
-        <img src="{base}/NM4259/{data.post?.coverImage}_Mobile.png" alt="Cover">
+        <img src="{base}/NM4259/{data.post?.coverImage}_Mobile.jpg" alt="Cover">
     {:else}
-        <img src="{base}/NM4259/{data.post?.coverImage}.png" alt="Cover">
+        <img src="{base}/NM4259/{data.post?.coverImage}.jpg" alt="Cover">
     {/if}
 </div>
 

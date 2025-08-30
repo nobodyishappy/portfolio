@@ -18,3 +18,8 @@ h2 {
         background: gray !important;
     }
 }
+
+.blog-image {
+    max-height: 500px;
+    margin: 15px auto;
+}
