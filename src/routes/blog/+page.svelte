@@ -1,6 +1,5 @@
 <script>
     import { base } from '$app/paths';
-	import { onMount } from 'svelte';
     import { innerWidth } from 'svelte/reactivity/window';
 
     import { register } from 'swiper/element/bundle';

@@ -1,6 +1,7 @@
 <script>
     import { base } from '$app/paths';
     import { innerWidth } from 'svelte/reactivity/window';
+	import Body from './Body.svelte';
 
     let { data } = $props();
 </script>
@@ -15,7 +16,9 @@
 
 <div class="article-text">
     <h1>{data.post?.title}</h1>
-    <div>{@html data.post?.content}</div>
+    {#each data.post?.contents as content}
+        <Body {...content} />
+    {/each}
 </div>
 
 <style lang="scss">
