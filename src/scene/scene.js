@@ -4,7 +4,6 @@ import { DRACOLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { base } from '$app/paths';
 import { getMammothCamMov, animateMammoth, mammothInteract, loadMammoth } from './mammoth';
 import { animateSA, getStartAreaComplete, interactStartArea, loadStartingArea } from './startingArea';
-import { isDialogOpen } from '../stores/dialogStores';
 import { animateCaveman, getCavemanCamMov, loadCaveman, cavemanInteract } from './caveman';
 
 const scene = new THREE.Scene();
@@ -19,7 +18,7 @@ const degToRad = Math.PI / 180;
 
 let playerOffset = new THREE.Vector3(0,0,0);
 let dirLightOffset = new THREE.Vector3(100,100,100);
-let cameraOffset = new THREE.Vector3(0,10,10);
+let cameraOffset = new THREE.Vector3(0,2,0);
 
 // Pathfinding 
 const clock = new THREE.Clock();
@@ -31,12 +30,12 @@ const ZONE = 'level1';
 let path;
 
 //Movement Values
-const startPos = new THREE.Vector3(0, 0, 6);
+const startPos = new THREE.Vector3(0, 0, 10);
 /** @type {THREE.Vector3} */
-let currentPos = startPos;
+let currentPos = startPos.clone();
 /** @type {THREE.Vector3} */
 let endPos;
-const startRot = 90;
+const startRot = 270;
 /** @type {Number} */
 let currentRot = startRot;
 /** @type {Number} */
@@ -45,7 +44,7 @@ let endRot;
 let rotDir;
 let currentIndex = 0;
 let movSpeed = 10;
-let rotSpeed = 300;
+let rotSpeed = 100;
 let isMoving = false;
 const direction = new THREE.Vector3();
 const temp = new THREE.Vector3();
@@ -53,12 +52,11 @@ const temp = new THREE.Vector3();
 // Camera panning
 let isPanning = false;
 let isInteracted = false;
-let cameraTargetPos = startPos.clone();
-let startingPanPos = startPos.clone();
-let currentCameraOffset = cameraOffset.clone();
-let startCameraOffset = cameraOffset.clone();
-let currentCameraRot = 0;
-let currentCameraRad = 0;
+let currentPlayerLook = cameraOffset.clone().add(new THREE.Vector3(-Math.cos(currentRot * degToRad), 0, Math.sin(currentRot * degToRad)));
+let cameraTargetPos = currentPos.clone().add(currentPlayerLook);
+let startingPanPos = currentPos.clone().add(currentPlayerLook);
+let currentCameraOffset = currentPos.clone().add(cameraOffset);
+let startCameraOffset = currentPos.clone().add(cameraOffset);
 
 // Player Model
 /** @type {THREE.Object3D<THREE.Object3DEventMap>} */
@@ -72,7 +70,7 @@ let ambientLight;
 /** @type {THREE.DirectionalLight} */
 let dirLight;
 
-export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
+export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {    
     if (isPanning || interactDisabled) {
         return;
     }
@@ -82,32 +80,33 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
     const intersects = raycaster.intersectObjects(scene.children);
 
     if (isInteracted) {
-        startingPanPos.copy(cameraTargetPos);
-        startCameraOffset.copy(currentCameraOffset);
-
-        cameraMovement(currentPos.clone(), cameraOffset.clone());
-        isPanning = true;
+        panToChar()
         
         return;
     }
 
     for(let i = 0; i < intersects.length; i++) {
         if (intersects[i].object.name.includes("Monument_") && getStartAreaComplete() && !isMoving) {
-            cameraTargetPos.copy(currentPos);
-            startingPanPos.copy(currentPos);
+            cameraTargetPos.copy(currentPos).add(currentPlayerLook);
+            startingPanPos.copy(currentPos).add(currentPlayerLook);
             isPanning = true;
-            cameraMovement(new THREE.Vector3(0, 4, 0), cameraOffset.clone());
+            startCameraOffset = currentPos.clone().add(cameraOffset);
+            let moveToTarget = new THREE.Vector3(0, 4, 0);
+            let moveToPosition = moveToTarget.clone().add(new THREE.Vector3(0, 10, 10));
+            cameraMovement(moveToTarget, moveToPosition, 50);
             break;
         }
 
         if (intersects[i].object.name.includes("Caveman") && !isMoving) {
             disableInteract();
 
-            cameraTargetPos.copy(currentPos);
-            startingPanPos.copy(currentPos);
+            cameraTargetPos.copy(currentPos).add(currentPlayerLook);
+            startingPanPos.copy(currentPos).add(currentPlayerLook);
             isPanning = true;
-            startCameraOffset = currentCameraOffset.clone();
-            cameraMovement(getCavemanCamMov()[0], getCavemanCamMov()[1]);
+            startCameraOffset = currentPos.clone().add(cameraOffset);
+            let moveToTarget = getCavemanCamMov()[0];
+            let moveToPosition = moveToTarget.clone().add(getCavemanCamMov()[1]);
+            cameraMovement(moveToTarget, moveToPosition, 50);
             cavemanInteract();
             break;
         } 
@@ -115,11 +114,13 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
         if (intersects[i].object.name.includes("Mammoth") && !isMoving) {
             disableInteract();
 
-            cameraTargetPos.copy(currentPos);
-            startingPanPos.copy(currentPos);
+            cameraTargetPos.copy(currentPos).add(currentPlayerLook);
+            startingPanPos.copy(currentPos).add(currentPlayerLook);
             isPanning = true;
-            startCameraOffset = currentCameraOffset.clone();
-            cameraMovement(getMammothCamMov()[0], getMammothCamMov()[1]);
+            startCameraOffset = currentPos.clone().add(cameraOffset);
+            let moveToTarget = getMammothCamMov()[0];
+            let moveToPosition = moveToTarget.clone().add(getMammothCamMov()[1]);
+            cameraMovement(moveToTarget, moveToPosition, 50);
             mammothInteract();
             break;
         }
@@ -160,27 +161,29 @@ export const panToChar = () => {
     startingPanPos.copy(cameraTargetPos);
     startCameraOffset.copy(currentCameraOffset);
     isPanning = true;
-    cameraMovement(currentPos.clone(), cameraOffset.clone());
+    cameraMovement(currentPos.clone().add(currentPlayerLook), currentPos.clone().add(cameraOffset), 20);
 }
 
 export const rotateCamera = (/** @type {Boolean} */ isRight) => {
-    currentCameraRad = Math.sqrt(Math.pow(currentCameraOffset.x,2) + Math.pow(currentCameraOffset.z,2));
-    currentCameraRot = (THREE.MathUtils.radToDeg(Math.atan2(currentCameraOffset.x, currentCameraOffset.z)) + 360) % 360;
+    if (isMoving || interactDisabled) {
+        return;
+    }
 
-    if (!isRight) {
-        currentCameraRot -= 1;
-        if (currentCameraRot < 0) {
-            currentCameraRot = 359;
+    if (isRight) {
+        currentRot -= 1;
+        if (currentRot < 0) {
+            currentRot = 359;
         }
     } else {
-        currentCameraRot += 1;
-        if (currentCameraRot > 359) {
-            currentCameraRot = 0;
+        currentRot += 1;
+        if (currentRot > 359) {
+            currentRot = 0;
         }
     }
-    currentCameraOffset = new THREE.Vector3(currentCameraRad * Math.sin(currentCameraRot * degToRad), currentCameraOffset.y, currentCameraRad * Math.cos(currentCameraRot * degToRad))
-    camera.position.copy(cameraTargetPos).add(currentCameraOffset);
+    currentPlayerLook = new THREE.Vector3(-Math.cos(currentRot * degToRad), currentPlayerLook.y, Math.sin(currentRot * degToRad));
+    cameraTargetPos = currentPos.clone().add(currentPlayerLook);
     camera.lookAt(cameraTargetPos);
+    player.rotation.y = currentRot * degToRad;
 }
 
 const animate = () => {
@@ -203,6 +206,9 @@ const animate = () => {
             } else {
                 currentRot = currentRot + rotDir * rotationThisFrame;
                 player.rotation.y = currentRot * degToRad;
+                currentPlayerLook = new THREE.Vector3(-Math.cos(currentRot * degToRad), currentPlayerLook.y, Math.sin(currentRot * degToRad));
+                cameraTargetPos = currentPos.clone().add(currentPlayerLook);
+                camera.lookAt(cameraTargetPos);
             }
             return;
         }
@@ -231,11 +237,13 @@ const animate = () => {
             temp.copy(direction).multiplyScalar(distanceThisFrame);
             currentPos.add(temp);
         }
-
+        
         player.position.copy(currentPos).add(playerOffset);
-        cameraTargetPos.copy(currentPos);
-        camera.position.copy(currentPos).add(currentCameraOffset);
-        camera.lookAt(currentPos);
+        cameraTargetPos.copy(currentPos).add(currentPlayerLook);
+        camera.position.copy(currentPos).add(cameraOffset);
+        camera.lookAt(cameraTargetPos);
+
+        currentCameraOffset = camera.position.clone();
     }
 }
 
@@ -248,23 +256,24 @@ const rotateAngle = () => {
     return rotDir * startRotVector.angleTo(direction) * (1 / degToRad);
 }
 
-const cameraMovement = (/** @type {THREE.Vector3} */target, /** @type {THREE.Vector3} */targetOffset) => {
+const cameraMovement = (/** @type {THREE.Vector3} */target, /** @type {THREE.Vector3} */targetOffset, /** @type {Number} */intervals) => {
     let diff = new THREE.Vector3().subVectors(target, startingPanPos);
-    cameraTargetPos.add(diff.divideScalar(50));
+    cameraTargetPos.add(diff.divideScalar(intervals)); 
 
-    let offsetDiff = new THREE.Vector3().subVectors(targetOffset, startCameraOffset);
-    currentCameraOffset.add(offsetDiff.divideScalar(50));
+    // let offsetDiff = new THREE.Vector3().subVectors(targetOffset, startCameraOffset);
+    // currentCameraOffset.add(offsetDiff.divideScalar(intervals));
 
-    camera.position.copy(cameraTargetPos).add(currentCameraOffset);
+    // camera.position.copy(currentCameraOffset);
     camera.lookAt(cameraTargetPos);
 
-    if (cameraTargetPos.distanceTo(target) > 0.05) {
+    if (cameraTargetPos.distanceTo(target) > 0.01) {
         setTimeout(() => {
-            cameraMovement(target, targetOffset);
+            cameraMovement(target, targetOffset, intervals);
         }, 10);
     } else {
         isPanning = false;
-        isInteracted = cameraTargetPos.distanceTo(currentPos) > 0.05
+        //isInteracted = currentCameraOffset.distanceTo(currentPos.clone().add(cameraOffset)) > 0.01;
+        isInteracted = cameraTargetPos.distanceTo(currentPos.clone().add(currentPlayerLook)) > 0.01;
     }
 }
 
@@ -282,14 +291,14 @@ export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} *
     camera.aspect = newWidth / newHeight;
     camera.updateProjectionMatrix();
 
-    if (isMobile) {
-        cameraOffset = new THREE.Vector3(0, 15, 15);
-        currentCameraOffset = cameraOffset.clone()
-        camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
-    } else {
-        cameraOffset = new THREE.Vector3(0, 10, 10);
-        camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
-    }
+    // if (isMobile) {
+    //     cameraOffset = new THREE.Vector3(0, 15, 15);
+    //     currentCameraOffset = cameraOffset.clone()
+    //     camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
+    // } else {
+    //     cameraOffset = new THREE.Vector3(0, 10, 10);
+    //     camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
+    // }
 }
 
 export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {boolean} */ isMob) => {
@@ -312,8 +321,9 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     camera = new THREE.PerspectiveCamera(45, el.width / el.height, 0.2, 1000);
-    camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
-    camera.lookAt(currentPos);
+    camera.position.copy(currentCameraOffset);
+    
+    camera.lookAt(cameraTargetPos);
 
     ambientLight = new THREE.AmbientLight( 0xffffff, 1.0 );
     scene.add(ambientLight);
@@ -368,6 +378,32 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
         scene.add(model);
         indicator = model;
         indicator.visible = false;
+    });
+
+    loader.load(`${base}/models/OogaBoogaShowcase.glb`, (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
+
+    loader.load(`${base}/models/HumanCastleShowcase.glb`, (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
+    loader.load(`${base}/models/ElfForestShowcase.glb`, (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
+    loader.load(`${base}/models/DwarfMountainShowcase.glb`, (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
+    loader.load(`${base}/models/OrcDesertShowcase.glb`, (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
+    loader.load(`${base}/models/DemonDesolateShowcase.glb`, (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
     });
 
     loadStartingArea(loader, scene);

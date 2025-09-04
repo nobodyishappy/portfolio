@@ -3,7 +3,6 @@
     import { createScene, resizeScene, interact, rotateCamera} from "../scene/scene.js"
     import DialogBox from "./dialogBox.svelte";
 	import InteractBox from "./interactOBBox.svelte";
-	import { preventDefault } from "svelte/legacy";
     
     let innerWidth = $state(0);
     let innerHeight = $state(0);
@@ -25,19 +24,19 @@
             resizeScene(innerWidth, innerHeight, innerWidth < 800);
         })
 
-        el.addEventListener("mousedown", (e) => startInteract(e));
-        el.addEventListener("mousemove", (e) => {
+        window.addEventListener("mousedown", (e) => startInteract(e));
+        window.addEventListener("mousemove", (e) => {
             e.preventDefault();
             moveInteract(e);
         });
-        el.addEventListener("mouseup", (e) => endInteract(e));
+        window.addEventListener("mouseup", (e) => endInteract(e));
 
-        el.addEventListener("touchstart", (e) => startInteract(e.touches[0]));
-        el.addEventListener("touchmove", (e) => {
+        window.addEventListener("touchstart", (e) => startInteract(e.touches[0]));
+        window.addEventListener("touchmove", (e) => {
             e.preventDefault();
             moveInteract(e.touches[0])
         });
-        el.addEventListener("touchend", (e) => endInteract(e.touches[0]));
+        window.addEventListener("touchend", (e) => endInteract(e.touches[0]));
     });
 
     const startInteract = (/** @type {MouseEvent | Touch} */ e) => {
@@ -57,7 +56,7 @@
                 rotateCamera((startInteractX - e.clientX) < 0);
                 setTimeout(() => {
                     isInteractRotating = false;
-                }, 1)
+                }, 5)
             }
         }
     }
