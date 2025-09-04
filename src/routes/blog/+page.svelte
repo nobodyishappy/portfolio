@@ -1,6 +1,5 @@
 <script>
     import { base } from '$app/paths';
-	import { onMount } from 'svelte';
     import { innerWidth } from 'svelte/reactivity/window';
 
     import { register } from 'swiper/element/bundle';
@@ -45,9 +44,9 @@
                 <div class="swiper-slide">
                     <a href="{base}/blog/{slug}">
                         {#if innerWidth.current && innerWidth.current < 800}
-                            <img src="{base}/NM4259/{coverImage}_Mobile.png" alt="Cover">
+                            <img src="{base}/NM4259/{coverImage}_Mobile.jpg" alt="Cover">
                         {:else}
-                            <img src="{base}/NM4259/{coverImage}.png" alt="Cover">
+                            <img src="{base}/NM4259/{coverImage}.jpg" alt="Cover">
                         {/if}
                         <div class="title-text">{title}</div>
                     </a>
