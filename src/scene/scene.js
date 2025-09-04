@@ -21,14 +21,6 @@ let playerOffset = new THREE.Vector3(0,0,0);
 let dirLightOffset = new THREE.Vector3(100,100,100);
 let cameraOffset = new THREE.Vector3(0,10,10);
 
-// Camera panning
-let isPanning = false;
-let isInteracted = false;
-let cameraTargetPos = new THREE.Vector3();
-let startingPanPos = new THREE.Vector3();
-let currentCameraOffset = cameraOffset.clone();
-let startCameraOffset = cameraOffset.clone();
-
 // Pathfinding 
 const clock = new THREE.Clock();
 const pathfinding = new Pathfinding();
@@ -57,6 +49,16 @@ let rotSpeed = 300;
 let isMoving = false;
 const direction = new THREE.Vector3();
 const temp = new THREE.Vector3();
+
+// Camera panning
+let isPanning = false;
+let isInteracted = false;
+let cameraTargetPos = startPos.clone();
+let startingPanPos = startPos.clone();
+let currentCameraOffset = cameraOffset.clone();
+let startCameraOffset = cameraOffset.clone();
+let currentCameraRot = 0;
+let currentCameraRad = 0;
 
 // Player Model
 /** @type {THREE.Object3D<THREE.Object3DEventMap>} */
@@ -104,8 +106,7 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
             cameraTargetPos.copy(currentPos);
             startingPanPos.copy(currentPos);
             isPanning = true;
-            startCameraOffset = cameraOffset.clone();
-            currentCameraOffset = cameraOffset.clone();
+            startCameraOffset = currentCameraOffset.clone();
             cameraMovement(getCavemanCamMov()[0], getCavemanCamMov()[1]);
             cavemanInteract();
             break;
@@ -117,8 +118,7 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
             cameraTargetPos.copy(currentPos);
             startingPanPos.copy(currentPos);
             isPanning = true;
-            startCameraOffset = cameraOffset.clone();
-            currentCameraOffset = cameraOffset.clone();
+            startCameraOffset = currentCameraOffset.clone();
             cameraMovement(getMammothCamMov()[0], getMammothCamMov()[1]);
             mammothInteract();
             break;
@@ -161,6 +161,26 @@ export const panToChar = () => {
     startCameraOffset.copy(currentCameraOffset);
     isPanning = true;
     cameraMovement(currentPos.clone(), cameraOffset.clone());
+}
+
+export const rotateCamera = (/** @type {Boolean} */ isRight) => {
+    currentCameraRad = Math.sqrt(Math.pow(currentCameraOffset.x,2) + Math.pow(currentCameraOffset.z,2));
+    currentCameraRot = (THREE.MathUtils.radToDeg(Math.atan2(currentCameraOffset.x, currentCameraOffset.z)) + 360) % 360;
+
+    if (!isRight) {
+        currentCameraRot -= 1;
+        if (currentCameraRot < 0) {
+            currentCameraRot = 359;
+        }
+    } else {
+        currentCameraRot += 1;
+        if (currentCameraRot > 359) {
+            currentCameraRot = 0;
+        }
+    }
+    currentCameraOffset = new THREE.Vector3(currentCameraRad * Math.sin(currentCameraRot * degToRad), currentCameraOffset.y, currentCameraRad * Math.cos(currentCameraRot * degToRad))
+    camera.position.copy(cameraTargetPos).add(currentCameraOffset);
+    camera.lookAt(cameraTargetPos);
 }
 
 const animate = () => {
@@ -213,7 +233,8 @@ const animate = () => {
         }
 
         player.position.copy(currentPos).add(playerOffset);
-        camera.position.copy(currentPos).add(cameraOffset);
+        cameraTargetPos.copy(currentPos);
+        camera.position.copy(currentPos).add(currentCameraOffset);
         camera.lookAt(currentPos);
     }
 }
@@ -263,6 +284,7 @@ export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} *
 
     if (isMobile) {
         cameraOffset = new THREE.Vector3(0, 15, 15);
+        currentCameraOffset = cameraOffset.clone()
         camera.position.set(startPos.x, startPos.y, startPos.z).add(cameraOffset);
     } else {
         cameraOffset = new THREE.Vector3(0, 10, 10);
