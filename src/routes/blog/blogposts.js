@@ -63,9 +63,10 @@ export const posts = [
             {
                 component: 'paragraph',
                 data: {
-                    text: `Before leaving the class, I recalled and shared a conversation that I had with one of my friends on a webpage design issue. This issue stems from standard layout for most recipe sites. 
-                    The layout for most of these sites starts off with a detailed blog with images of the different steps and what to watch for then followed by the exact ingredient list and instruction steps. 
-                    These led to some cumbersome interaction when following the website for the recipe with the constant requirement for scrolling to the different sections of the site.`
+                    text: `To resolve this issue, I started off by asking some of my friends for any ideas on the topic. One of them suggested edurec which reminded me of the recent experience I had with the site itself. 
+                    The experience was with the application for graduation process. This process requires us to start off by submitting a what-if report on our planned courses for the upcoming semester. 
+                    The main issue I faced was with the course selection process. The course selection process consists of a selection of alphabets to select the first letter of your course code and followed by a dropdown to select your course. 
+                    The worst part is that selecting causes the page to exit back and you will have to do the entire selection again.`
                 }
             },
             {
@@ -84,9 +85,9 @@ export const posts = [
             {
                 component: 'paragraph',
                 data: {
-                    text: `Before leaving the class, I recalled and shared a conversation that I had with one of my friends on a webpage design issue. This issue stems from standard layout for most recipe sites. 
-                    The layout for most of these sites starts off with a detailed blog with images of the different steps and what to watch for then followed by the exact ingredient list and instruction steps. 
-                    These led to some cumbersome interaction when following the website for the recipe with the constant requirement for scrolling to the different sections of the site.`
+                    text: `Finally, our group met up on Friday to share our findings and discuss on the site/app that we would be choosing. During the sharing and discussion process, 
+                    we decided to weight the advantages and disadvantages of each site/app with regards to the accessibility of our target audiences and the feasibility of the design change. 
+                    After voting and further discussion, we decided to choose NUSmart Dining App as the interaction design that we would try to improve on. We proceeded to do up the write up to explain and elaborate why we decided on this application.`
                 }
             },
         ]
