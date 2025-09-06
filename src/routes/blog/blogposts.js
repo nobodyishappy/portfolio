@@ -1,5 +1,95 @@
 export const posts = [
     {
+		slug: 'nm4259_blog_post_2',
+		title: 'NM4259 Blog Post #2',
+        coverImage: 'InterviewStickman',
+		contents: [
+            {
+                component: 'paragraph',
+                data: {
+                    text: `After deciding on NUSmart Dining App as our interaction design of choice, we got started with the data collection process for user research. 
+                    During class, our group had a discussion on which methods that we should use to collect data from our target audience. Our team considering between using the fly on the wall method or contextual inquiry. 
+                    We decided to go with contextual inquiry as we wanted a method that would be able to get the most realistic and informational data from the users.`
+                }
+            },
+            {
+                component: 'header',
+                data: {
+                    text: 'Survey for User Research'
+                }
+            },
+            {
+                component: 'image',
+                data: {
+                    src: 'NM4259/Survey.png',
+                    alt: 'survey'
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `To add onto the contextual inquiry, we decided to do up a survey with some demographic based question to get some data on the usage, strengths and weaknesses of the application. 
+                    We start the survey with a few demographic based questions to get some data on the users. Followed by some question on strength and weakness of the application. 
+                    Ending off with a question on what the user recommends to be improved on for the application. 
+                    After confirming the question on the form, we sent out the forms to get data on pain points for the application that we can work on.`
+                }
+            },
+            {
+                component: 'header',
+                data: {
+                    text: 'Contextual Inquiry on Users'
+                }
+            },
+            {
+                component: 'image',
+                data: {
+                    src: 'NM4259/CIVideo.gif',
+                    alt: 'survey'
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `On Friday, I manage to get a friend that has been using the application for a long time to do a contextual inquiry while he was ordering food at The Terrace. 
+                    One thing that I found tough was to come up with the question to ask the user while they are using the application. As I am also a regular user of the application, 
+                    I roughly knew the general process for the application itself. After getting through the CI, 
+                    I conducted a post-interview with some questions like reasons for using the application and pros and cons of the application.`
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `I manage to get another friend which did not have any experience with the application at all. I wanted to know if a new user is able to use the application. 
+                    One error that was brought up by the user was the fact that the location of The Terrace is incorrect. 
+                    One interesting factor was the fact that the number of people in queue caught his attention when he was choosing a store to eat from. 
+                    Overall, his experience with it was quite positive and smooth with some comments on the error and user interface.`
+                }
+            },
+            {
+                component: 'header',
+                data: {
+                    text: 'App reviews'
+                }
+            },
+            {
+                component: 'image',
+                data: {
+                    src: 'NM4259/AppRating.jpg',
+                    alt: 'app rating'
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `The final thing that I did was to look through the google play store reviews for the application. The overall rating for the application was 1.4-stars with 61 different ratings. 
+                    Most of the written reviews were 1-star. The most recent reviews were done on October 2023. After looking through the reviews, 
+                    the issue that was brought up the most was the login issues followed by the payment problems. However, there might been updates over the past two year which was able to fix the issue. 
+                    The interesting thing I noticed was the showcase images has not been updated with the new user interface.`
+                }
+            },
+        ]
+	},
+    {
 		slug: 'nm4259_blog_post_1',
 		title: 'NM4259 Blog Post #1',
         coverImage: 'Stickman',
