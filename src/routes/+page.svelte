@@ -12,7 +12,9 @@
 
     /** @type {number | undefined} */
     let interactTimer;
-    let startInteractX = $state(0);
+    let prevInteractX = $state(0);
+    let prevInteractY = $state(0);
+
     let isInteractDown = $state(false)
     let isInteractMoving = $state(false)
     let isInteractRotating = $state(false);
@@ -30,6 +32,7 @@
             moveInteract(e);
         });
         window.addEventListener("mouseup", (e) => endInteract(e));
+        window.addEventListener("mouseleave", (e) => endInteract(e));
 
         window.addEventListener("touchstart", (e) => startInteract(e.touches[0]));
         window.addEventListener("touchmove", (e) => {
@@ -37,13 +40,15 @@
             moveInteract(e.touches[0])
         });
         window.addEventListener("touchend", (e) => endInteract(e.touches[0]));
+        
     });
 
     const startInteract = (/** @type {MouseEvent | Touch} */ e) => {
         if(!isInteractDown) {
             isInteractDown = true;
-            startInteractX = e.clientX;
             interactTimer = setTimeout(() => {
+                prevInteractX = e.clientX;
+                prevInteractY = e.clientY;
                 isInteractMoving = true;
             }, 100)
         } 
@@ -53,7 +58,9 @@
         if(isInteractMoving) {
             if (!isInteractRotating) {
                 isInteractRotating = true;
-                rotateCamera((startInteractX - e.clientX) < 0);
+                rotateCamera(e.clientX - prevInteractX, e.clientY - prevInteractY);
+                prevInteractX = e.clientX;
+                prevInteractY = e.clientY;
                 setTimeout(() => {
                     isInteractRotating = false;
                 }, 5)

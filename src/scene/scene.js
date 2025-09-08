@@ -37,7 +37,10 @@ let currentPos = startPos.clone();
 let endPos;
 const startRot = 270;
 /** @type {Number} */
-let currentRot = startRot;
+let currentYaw = startRot;
+const startPitch = 0;
+let currentPitch = startPitch;
+let pitchRange = [-45, 45];
 /** @type {Number} */
 let endRot;
 /** @type {Number} */
@@ -52,9 +55,9 @@ const temp = new THREE.Vector3();
 // Camera panning
 let isPanning = false;
 let isInteracted = false;
-let currentPlayerLook = cameraOffset.clone().add(new THREE.Vector3(-Math.cos(currentRot * degToRad), 0, Math.sin(currentRot * degToRad)));
-let cameraTargetPos = currentPos.clone().add(currentPlayerLook);
-let startingPanPos = currentPos.clone().add(currentPlayerLook);
+let currentPlayerLook = cameraOffset.clone();
+let cameraTargetPos = currentPos.clone();
+let startingPanPos = currentPos.clone();
 let currentCameraOffset = currentPos.clone().add(cameraOffset);
 let startCameraOffset = currentPos.clone().add(cameraOffset);
 
@@ -142,7 +145,7 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
                 currentIndex = 0;
 
                 direction.subVectors(endPos, currentPos);
-                endRot = currentRot + rotateAngle();
+                endRot = currentYaw + rotateAngle();
 
                 indicator.position.copy(b);
                 indicator.visible = true;
@@ -164,26 +167,24 @@ export const panToChar = () => {
     cameraMovement(currentPos.clone().add(currentPlayerLook), currentPos.clone().add(cameraOffset), 20);
 }
 
-export const rotateCamera = (/** @type {Boolean} */ isRight) => {
+export const rotateCamera = (/** @type {Number} */ yawMove, /** @type {Number} */ pitchMove) => {
     if (isMoving || interactDisabled) {
         return;
     }
 
-    if (isRight) {
-        currentRot -= 1;
-        if (currentRot < 0) {
-            currentRot = 359;
-        }
-    } else {
-        currentRot += 1;
-        if (currentRot > 359) {
-            currentRot = 0;
-        }
-    }
-    currentPlayerLook = new THREE.Vector3(-Math.cos(currentRot * degToRad), currentPlayerLook.y, Math.sin(currentRot * degToRad));
+    currentYaw = normalizeAngle(currentYaw + (yawMove * 0.1));
+    currentPitch = THREE.MathUtils.clamp(currentPitch + (pitchMove * 0.1), pitchRange[0], pitchRange[1]);
+
+    currentPlayerLook.set(Math.cos(currentPitch * degToRad)*-Math.cos(currentYaw * degToRad), 
+                        Math.sin(currentPitch * degToRad) + 2, 
+                        Math.cos(currentPitch * degToRad)*Math.sin(currentYaw * degToRad));
     cameraTargetPos = currentPos.clone().add(currentPlayerLook);
     camera.lookAt(cameraTargetPos);
-    player.rotation.y = currentRot * degToRad;
+    player.rotation.y = currentYaw * degToRad;
+}
+
+const normalizeAngle = (/**@type {Number} */ angle) => {
+    return (angle % 360 + 360) % 360;
 }
 
 const animate = () => {
@@ -200,13 +201,13 @@ const animate = () => {
     if(isMoving) {
         const rotationThisFrame = rotSpeed * delta;
         
-        if (endRot != currentRot) {
-            if (endRot * rotDir <= (currentRot + rotDir * rotationThisFrame) * rotDir) {
-                currentRot = endRot;
+        if (endRot != currentYaw) {
+            if (endRot * rotDir <= (currentYaw + rotDir * rotationThisFrame) * rotDir) {
+                currentYaw = endRot;
             } else {
-                currentRot = currentRot + rotDir * rotationThisFrame;
-                player.rotation.y = currentRot * degToRad;
-                currentPlayerLook = new THREE.Vector3(-Math.cos(currentRot * degToRad), currentPlayerLook.y, Math.sin(currentRot * degToRad));
+                currentYaw = currentYaw + rotDir * rotationThisFrame;
+                player.rotation.y = currentYaw * degToRad;
+                currentPlayerLook = new THREE.Vector3(-Math.cos(currentYaw * degToRad), currentPlayerLook.y, Math.sin(currentYaw * degToRad));
                 cameraTargetPos = currentPos.clone().add(currentPlayerLook);
                 camera.lookAt(cameraTargetPos);
             }
@@ -226,7 +227,7 @@ const animate = () => {
                 endPos.copy(path[currentIndex]);
 
                 direction.subVectors(endPos, currentPos);
-                endRot = currentRot + rotateAngle();
+                endRot = currentYaw + rotateAngle();
             } else {
                 isMoving = false;
                 currentIndex = 0;
@@ -248,7 +249,7 @@ const animate = () => {
 }
 
 const rotateAngle = () => {
-    const startRotVector = new THREE.Vector3(-Math.cos(currentRot * degToRad), 0, Math.sin(currentRot * degToRad))
+    const startRotVector = new THREE.Vector3(-Math.cos(currentYaw * degToRad), 0, Math.sin(currentYaw * degToRad))
     const normal = new THREE.Vector3(0, 1, 0);
     const cross = new THREE.Vector3().crossVectors(startRotVector, direction);
     rotDir = Math.sign(normal.dot(cross));
@@ -313,6 +314,10 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
     // scene.add(capsule)
     // capsule.position.set(startPos.x, startPos.y, startPos.z).add(playerOffset);
     // capsule.castShadow = true;
+    
+    //Environment Setup
+    scene.background = new THREE.Color(0x87CEEB);
+    scene.fog = new THREE.Fog(0xcccccc);
 
     const playerMaterial = new THREE.MeshToonMaterial({ color: 0x00ffff, gradientMap: fiveTone });
 
@@ -322,7 +327,11 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
 
     camera = new THREE.PerspectiveCamera(45, el.width / el.height, 0.2, 1000);
     camera.position.copy(currentCameraOffset);
-    
+    currentPlayerLook.set(Math.cos(currentPitch * degToRad)*-Math.cos(currentYaw * degToRad), 
+                        Math.sin(currentPitch * degToRad) + 2, 
+                        Math.cos(currentPitch * degToRad)*Math.sin(currentYaw * degToRad));
+    cameraTargetPos.add(currentPlayerLook);
+    startingPanPos.add(currentPlayerLook);
     camera.lookAt(cameraTargetPos);
 
     ambientLight = new THREE.AmbientLight( 0xffffff, 1.0 );
