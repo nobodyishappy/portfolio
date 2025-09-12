@@ -18,7 +18,7 @@ const degToRad = Math.PI / 180;
 
 let playerOffset = new THREE.Vector3(0,0,0);
 let dirLightOffset = new THREE.Vector3(100,100,100);
-let cameraOffset = new THREE.Vector3(0,2,0);
+let cameraOffset = new THREE.Vector3(0,1.5,0);
 
 // Pathfinding 
 const clock = new THREE.Clock();
