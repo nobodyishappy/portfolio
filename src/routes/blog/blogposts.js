@@ -1,5 +1,80 @@
 export const posts = [
     {
+        slug: 'nm4259_blog_post_3',
+		title: 'NM4259 Blog Post #3',
+        coverImage: 'StickmanDrawing',
+		contents: [
+            {
+                component: 'paragraph',
+                data: {
+                    text: `The week started before our Thursday lesson. Our team decided to meet to plan out the flow of the process that we are looking to improve. 
+                    We chose the process of users after payment till collection of food. From our analysis, we found out the users were not able to estimate the time required from the number of people that is in queue at the store. 
+                    On top of that, the application did not provide live updates on the current progress which makes the user uncertain of their order status.`
+                }
+            },
+            {
+                component: 'header',
+                data: {
+                    text: 'Meeting on Application Flow'
+                }
+            },
+            {
+                component: 'image',
+                data: {
+                    src: 'NM4259/ApplicationFlow.jpg',
+                    alt: 'Application Flow'
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `We decided to update the home screen to replace the what's in today slider with an order slider. Based on collected data, 
+                    users do not really look at this region but immediately start with the selecting of their orders. 
+                    We thought of removing it but we decided to replace it with a pop-up window such that they will be greeted with it during the first 
+                    instance of opening the application for the day. We also decided to make the area retractable to allow more space for the user to choose their meal.`
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `We decided to replace that area with the current orders to allow for users a simpler and quicker way of viewing their current order. 
+                    This region showcases the remaining time left, store name and order number which are the information that the users require the most. 
+                    When there is no active order, it will display the past orders which allows for the user to order again. This functionality is to aid users as we discovered that some users order the same item every time.`
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `Another page that we changed was the order details page. The old page was just a timeline where the application would immediately show the first three would turn green as you enter the page. 
+                    Then the user would not have any updates until the order is ready to collect. We split this page into two different modes. First, we decided to display the time remaining and the number of people ahead in queue. 
+                    This would help the users to stay updated on their food status. The second page is displayed as soon as the food is ready for collection. 
+                    This page shows the food item and its customization such that you can show the vendors during collection.`
+                }
+            },
+            {
+                component: 'header',
+                data: {
+                    text: 'Drawing of Lo-fi Wireframe'
+                }
+            },
+            {
+                component: 'image',
+                data: {
+                    src: 'NM4259/Wireframe.jpg',
+                    alt: 'app rating'
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `I was tasked to do up the wireframe for the proposed changes and some frames for the application flow. I used Krita to draw out the different frames without annotations. 
+                    A lot of the design were copied from the current application. I only decided to modify the areas that we were planning to. 
+                    The last change I did was the removal of the notification icon to shift it directly to the current order. An exclamation mark would appear and the status would change to ready.`
+                }
+            },
+        ]
+	},
+    {
 		slug: 'nm4259_blog_post_2',
 		title: 'NM4259 Blog Post #2',
         coverImage: 'InterviewStickman',
