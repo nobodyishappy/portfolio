@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
-import { base } from '$app/paths';
 import { currInteractText, isInteractOpen } from "../stores/interactStores.js";
 
 //Ooga Booga Showcase
@@ -60,9 +59,9 @@ export const playCavemanAnim = () => {
     cavemanActions[cavemanCurrIndex].play();
 }
 
-export const loadCaveman = (/** @type {GLTFLoader} */ loader, /** @type {THREE.Scene} */ scene) => {
+export const loadCaveman = (/** @type {GLTFLoader} */ loader, /** @type {THREE.Scene} */ scene, /** @type {string} */ modelFile) => {
 
-    loader.load(`${base}/models/Caveman.glb`, (gltf) => {
+    loader.load(modelFile, (gltf) => {
         const model = gltf.scene;
         scene.add(model);
 

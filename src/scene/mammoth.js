@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
-import { base } from '$app/paths';
 import { currInteractText, isInteractOpen } from '../stores/interactStores';
 
 //Ooga Booga Showcase
@@ -48,9 +47,9 @@ export const playMammothAnim = () => {
     mammothActions[mammothCurrIndex].play();
 }
 
-export const loadMammoth = (/** @type {GLTFLoader} */ loader, /** @type {THREE.Scene} */ scene) => {
+export const loadMammoth = (/** @type {GLTFLoader} */ loader, /** @type {THREE.Scene} */ scene, /** @type {string} */ modelFile) => {
 
-    loader.load(`${base}/models/Mammoth.glb`, (gltf) => {
+    loader.load(modelFile, (gltf) => {
         const model = gltf.scene;
         scene.add(model);
 

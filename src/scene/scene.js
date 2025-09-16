@@ -5,20 +5,41 @@ import { base } from '$app/paths';
 import { getMammothCamMov, animateMammoth, mammothInteract, loadMammoth } from './mammoth';
 import { animateSA, getStartAreaComplete, interactStartArea, loadStartingArea } from './startingArea';
 import { animateCaveman, getCavemanCamMov, loadCaveman, cavemanInteract } from './caveman';
+import { progress } from '../stores/loadingProgress';
 
 const scene = new THREE.Scene();
+const manager = new THREE.LoadingManager();
+const loader =  new GLTFLoader(manager);
 const raycaster = new THREE.Raycaster();
 /** @type {THREE.PerspectiveCamera} */
 let camera;
 /** @type {THREE.WebGLRenderer} */
 let renderer;
-let isMobile = false;
 let interactDisabled = true;
 const degToRad = Math.PI / 180;
 
+// Model files
+let modelsList = {
+    land: `${base}/models/Land.glb`,
+    obelisk: `${base}/models/Obelisk.glb`,
+    startMonument: `${base}/models/Monument.glb`,
+    playerChar: `${base}/models/Robot.glb`,
+    moveIndicator: `${base}/models/Indicator.glb`,
+    oogaBoogaShowcase: `${base}/models/OogaBoogaShowcase.glb`,
+    cavemanModel: `${base}/models/Caveman.glb`,
+    mammothModel: `${base}/models/Mammoth.glb`,
+    humanShowcase: `${base}/models/HumanCastleShowcase.glb`,
+    elfShowcase: `${base}/models/ElfForestShowcase.glb`,
+    dwarfShowcase: `${base}/models/DwarfMountainShowcase.glb`,
+    orcShowcase: `${base}/models/OrcDesertShowcase.glb`,
+    demonShowcase: `${base}/models/DemonDesolateShowcase.glb`,
+}
+
 let playerOffset = new THREE.Vector3(0,0,0);
 let dirLightOffset = new THREE.Vector3(100,100,100);
-let cameraOffset = new THREE.Vector3(0,1.5,0);
+const cameraForward = 0.2;
+let cameraOffset = new THREE.Vector3(0,1.5,-cameraForward);
+
 
 // Pathfinding 
 const clock = new THREE.Clock();
@@ -29,7 +50,7 @@ const ZONE = 'level1';
 /** @type {THREE.Vector3[]} */
 let path;
 
-//Movement Values
+// Movement Values
 const startPos = new THREE.Vector3(0, 0, 10);
 /** @type {THREE.Vector3} */
 let currentPos = startPos.clone();
@@ -130,6 +151,7 @@ export const interact = (/** @type {number} */ x, /** @type {number} */ y) => {
 
         if (intersects[i].object.name.includes("Obelisk_")) {
             interactStartArea(intersects[i])
+            break;
         }
 
         if(intersects[i].object.name == 'navmesh') {
@@ -174,10 +196,16 @@ export const rotateCamera = (/** @type {Number} */ yawMove, /** @type {Number} *
 
     currentYaw = normalizeAngle(currentYaw + (yawMove * 0.1));
     currentPitch = THREE.MathUtils.clamp(currentPitch + (pitchMove * 0.1), pitchRange[0], pitchRange[1]);
+    
+    // Offset to front of robot
+    cameraOffset.set(cameraForward * -Math.cos(currentYaw * degToRad), cameraOffset.y, cameraForward * Math.sin(currentYaw * degToRad));
+    currentCameraOffset.copy(currentPos).add(cameraOffset);
+    camera.position.copy(currentCameraOffset);
 
     currentPlayerLook.set(Math.cos(currentPitch * degToRad)*-Math.cos(currentYaw * degToRad), 
-                        Math.sin(currentPitch * degToRad) + 2, 
-                        Math.cos(currentPitch * degToRad)*Math.sin(currentYaw * degToRad));
+                        Math.sin(currentPitch * degToRad), 
+                        Math.cos(currentPitch * degToRad)*Math.sin(currentYaw * degToRad))
+                        .add(cameraOffset);
     cameraTargetPos = currentPos.clone().add(currentPlayerLook);
     camera.lookAt(cameraTargetPos);
     player.rotation.y = currentYaw * degToRad;
@@ -207,6 +235,11 @@ const animate = () => {
             } else {
                 currentYaw = currentYaw + rotDir * rotationThisFrame;
                 player.rotation.y = currentYaw * degToRad;
+
+                cameraOffset.set(cameraForward * -Math.cos(currentYaw * degToRad), cameraOffset.y, cameraForward * Math.sin(currentYaw * degToRad));
+                currentCameraOffset.copy(currentPos).add(cameraOffset);
+                camera.position.copy(currentCameraOffset);
+                
                 currentPlayerLook = new THREE.Vector3(-Math.cos(currentYaw * degToRad), currentPlayerLook.y, Math.sin(currentYaw * degToRad));
                 cameraTargetPos = currentPos.clone().add(currentPlayerLook);
                 camera.lookAt(cameraTargetPos);
@@ -286,8 +319,7 @@ export const disableInteract = () => {
     interactDisabled = true;
 }
 
-export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} */ newHeight, /** @type {boolean} */ isMob) => {
-    isMobile = isMob;
+export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} */ newHeight) => {
     renderer.setSize(newWidth, newHeight, false);
     camera.aspect = newWidth / newHeight;
     camera.updateProjectionMatrix();
@@ -302,7 +334,7 @@ export const resizeScene = (/** @type {number} */ newWidth, /** @type {number} *
     // }
 }
 
-export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {boolean} */ isMob) => {
+export const createScene = (/** @type {HTMLCanvasElement} */ el) => {
     const fiveTone = new THREE.TextureLoader().load(`${base}/gradientMaps/fiveTone.jpg`);
     fiveTone.minFilter = THREE.NearestFilter;
     fiveTone.magFilter = THREE.NearestFilter;
@@ -319,7 +351,7 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
     scene.background = new THREE.Color(0x87CEEB);
     scene.fog = new THREE.Fog(0xcccccc);
 
-    const playerMaterial = new THREE.MeshToonMaterial({ color: 0x00ffff, gradientMap: fiveTone });
+    // const playerMaterial = new THREE.MeshToonMaterial({ color: 0x00ffff, gradientMap: fiveTone });
 
     renderer = new THREE.WebGLRenderer({ antialias: true, canvas: el});
     renderer.shadowMap.enabled = true;
@@ -328,8 +360,9 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
     camera = new THREE.PerspectiveCamera(45, el.width / el.height, 0.2, 1000);
     camera.position.copy(currentCameraOffset);
     currentPlayerLook.set(Math.cos(currentPitch * degToRad)*-Math.cos(currentYaw * degToRad), 
-                        Math.sin(currentPitch * degToRad) + 2, 
-                        Math.cos(currentPitch * degToRad)*Math.sin(currentYaw * degToRad));
+                        Math.sin(currentPitch * degToRad), 
+                        Math.cos(currentPitch * degToRad)*Math.sin(currentYaw * degToRad))
+                        .add(cameraOffset);
     cameraTargetPos.add(currentPlayerLook);
     startingPanPos.add(currentPlayerLook);
     camera.lookAt(cameraTargetPos);
@@ -343,16 +376,17 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
     dirLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
     scene.add(dirLight);
 
-    resizeScene(el.width, el.height, isMob);
+    resizeScene(el.width, el.height);
 
-    // Import model
-    const loader = new GLTFLoader();
+    manager.onProgress = function( url, itemsLoaded, itemsTotal ) {
+        progress.set(itemsLoaded / itemsTotal);
+    }
 
-    const dracoLoader = new DRACOLoader();
+    const dracoLoader = new DRACOLoader(manager);
     dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
     loader.setDRACOLoader( dracoLoader );
 
-    loader.load(`${base}/models/Land.glb`, (gltf) => {
+    loader.load(modelsList["land"], (gltf) => {
         const model = gltf.scene;
         scene.add(model);
         let navmesh;
@@ -373,7 +407,7 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
         pathfinding.setZoneData(ZONE, Pathfinding.createZone(navmesh.geometry))
     });
 
-    loader.load(`${base}/models/Robot.glb`, (gltf) => {
+    loader.load(modelsList["playerChar"], (gltf) => {
         const model = gltf.scene;
         scene.add(model);
         player = model;
@@ -382,44 +416,48 @@ export const createScene = (/** @type {HTMLCanvasElement} */ el, /** @type {bool
         player.rotation.y = startRot * degToRad;
     })
 
-    loader.load(`${base}/models/Indicator.glb`, (gltf) => {
+    loader.load(modelsList["moveIndicator"], (gltf) => {
         const model = gltf.scene;
         scene.add(model);
         indicator = model;
         indicator.visible = false;
     });
 
-    loader.load(`${base}/models/OogaBoogaShowcase.glb`, (gltf) => {
+    loader.load(modelsList["oogaBoogaShowcase"], (gltf) => {
         const model = gltf.scene;
         scene.add(model);
     });
 
-    loader.load(`${base}/models/HumanCastleShowcase.glb`, (gltf) => {
-        const model = gltf.scene;
-        scene.add(model);
-    });
-    loader.load(`${base}/models/ElfForestShowcase.glb`, (gltf) => {
-        const model = gltf.scene;
-        scene.add(model);
-    });
-    loader.load(`${base}/models/DwarfMountainShowcase.glb`, (gltf) => {
-        const model = gltf.scene;
-        scene.add(model);
-    });
-    loader.load(`${base}/models/OrcDesertShowcase.glb`, (gltf) => {
-        const model = gltf.scene;
-        scene.add(model);
-    });
-    loader.load(`${base}/models/DemonDesolateShowcase.glb`, (gltf) => {
+    loader.load(modelsList["humanShowcase"], (gltf) => {
         const model = gltf.scene;
         scene.add(model);
     });
 
-    loadStartingArea(loader, scene);
+    loader.load(modelsList["elfShowcase"], (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
 
-    loadCaveman(loader, scene);
+    loader.load(modelsList["dwarfShowcase"], (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
 
-    loadMammoth(loader, scene);
+    loader.load(modelsList["orcShowcase"], (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
+    
+    loader.load(modelsList["demonShowcase"], (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+    });
+
+    loadStartingArea(loader, scene, modelsList["obelisk"], modelsList["startMonument"]);
+
+    loadCaveman(loader, scene, modelsList["cavemanModel"]);
+
+    loadMammoth(loader, scene, modelsList["mammothModel"]);
 
     animate();
 }

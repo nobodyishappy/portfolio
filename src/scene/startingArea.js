@@ -141,7 +141,7 @@ export const animateSA = (/** @type {number} */ delta) => {
     }
 }
 
-export const loadStartingArea = (/** @type {GLTFLoader} */ loader, /** @type {THREE.Scene} */ scene) => {
+export const loadStartingArea = (/** @type {GLTFLoader} */ loader, /** @type {THREE.Scene} */ scene, /** @type {string} */ obeliskFile, /** @type {string} */ startMonumentFile) => {
     const fiveTone = new THREE.TextureLoader().load(`${base}/gradientMaps/fiveTone.jpg`);
     fiveTone.minFilter = THREE.NearestFilter;
     fiveTone.magFilter = THREE.NearestFilter;
@@ -155,7 +155,7 @@ export const loadStartingArea = (/** @type {GLTFLoader} */ loader, /** @type {TH
     
     randObeliskArr = shuffleArray(randObeliskArr);
 
-    loader.load(`${base}/models/Obelisk.glb`, (gltf) => {
+    loader.load(obeliskFile, (gltf) => {
         const model = gltf.scene;
         scene.add(model);
         
@@ -196,7 +196,7 @@ export const loadStartingArea = (/** @type {GLTFLoader} */ loader, /** @type {TH
         obeliskLoaded = true;
     });
 
-    loader.load(`${base}/models/Monument.glb`, (gltf) => {
+    loader.load(startMonumentFile, (gltf) => {
         const model = gltf.scene;
         scene.add(model);
 
