@@ -1,5 +1,71 @@
 export const posts = [
     {
+        slug: 'nm4259_blog_post_4',
+		title: 'NM4259 Blog Post #4',
+        coverImage: 'StickmanLast',
+		contents: [
+            {
+                component: 'paragraph',
+                data: {
+                    text: `This would be the final week for our group project. Having completed most of the components for the group project, 
+                    we are tasked to compiled all the steps that we have done until now into a short presentation and a detailed report. `
+                }
+            },
+            {
+                component: 'header',
+                data: {
+                    text: 'Summary of Survey'
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `I was tasked to look through the surveys that we have collected and add the new submissions into the affinity diagram. 
+                    Looking through the survey submissions, this is when I came across my first challenge. While reading through the different submissions and feedback, 
+                    there were some answers that were vague and other answer that contained multiple issues in one. There were some answers that were weirdly confusing too. 
+                    To go around these issues, I read through the message multiple times to try to understand the message that the users were trying to get across. 
+                    I was able to split up some of the data and group vague and unclear responses. After getting the post its in order, 
+                    I was able to add to the classification that we had done previously. This further supports our approach in improving the payment to collection system.`
+                }
+            },
+            {
+                component: 'header',
+                data: {
+                    text: 'Recording of Pitch Presentation'
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `With the new affinity diagram, we started by doing the slides for the presentation. With 10 slides as out limit, 
+                    we had to come up with the slides that we thought would be important to share while following the content that we had to cover. 
+                    I came up with the rough layout of the contents to be covered. We started off by sharing our data analysis and resulting personas and problem statement. 
+                    Following that, we moved on to sharing our design process and the proposed redesign of the pages and user flow. 
+                    Finally, we ended by sharing the estimated cost for the redesign. Being someone that is not very outspoken, I struggled with the presentation portion of this project. 
+                    To overcome this, I wrote a script for the portions that I was tasked with and had some practice before doing the actual presentation with recording.`
+                }
+            },
+            {
+                component: 'header',
+                data: {
+                    text: 'Writing of Pitch Document'
+                }
+            },
+            {
+                component: 'paragraph',
+                data: {
+                    text: `The final submission was the full pitch document of the steps that we did to get to our low-fi prototype. 
+                    The last challenge that I faced was the section on estimated cost of the redesign for the application. At the start, 
+                    we thought there would be a requirement of a small team with a designer and a developer. Looking through the proposed redesign of the application. 
+                    I realised that there isn’t much change in terms of the design for the application. 
+                    We wanted to keep the design consistent with the rest of the application such that the user would not feel too much design whiplash while navigating. 
+                    Considering the fact that our client is NUS, there might already be a team that could work on these changes. So, 
+                    I suggested the simplest option which was a front-end developer intern to do the job with some further user research with incentives. `
+                }
+            },
+        ]
+	},
+    {
         slug: 'nm4259_blog_post_3',
 		title: 'NM4259 Blog Post #3',
         coverImage: 'StickmanDrawing',
